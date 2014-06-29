@@ -118,7 +118,8 @@ invoke `SETNX`, assigning a timestamp. This has the problem of requiring
 synchronization of clocks between all instances to maintain timeout accuracy.
 Furthermore, freeing a lock risks deleting a key set by a different lock.
 
-Another technique used is to WATCH the key for changes, as described below:
+Another technique used is to WATCH the key for changes when freeing, as
+described below:
 
 ```
 WATCH key  # Begin watching the key for changes

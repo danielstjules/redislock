@@ -1,11 +1,28 @@
 var expect    = require('expect.js');
 var Promise   = require('bluebird');
 var fakeredis = require('fakeredis');
+var redislock = require('../lib/redislock');
+var Lock      = require('../lib/lock');
 
+var LockAcquisitionError = redislock.LockAcquisitionError;
+var LockReleaseError     = redislock.LockReleaseError;
+
+// Fakeredis doesn't support SET options such as PX and NX
 var client = fakeredis.createClient(6379, '0.0.0.0', {fast: true});
-Promise.promisifyAll(client);
+client.origSet = client.set;
+client.set = function(key, val) {
+  var count = arguments.length;
+  var fn = arguments[count - 1];
 
-var Lock = require('../lib/lock');
+  client.get(key, function(err, res) {
+    if (err) return fn(err);
+    if (res) return fn(null, 0);
+
+    client.origSet(key, val, fn);
+  });
+};
+
+Promise.promisifyAll(client);
 
 describe('lock', function() {
   describe('constructor', function() {
@@ -58,6 +75,88 @@ describe('lock', function() {
       expect(lock.timeout).to.be(options.timeout);
       expect(lock.retries).to.be(options.retries);
       expect(lock.delay).to.be(options.delay);
+    });
+  });
+
+  describe('acquire', function() {
+    var lock;
+
+    // Used to replace a Lock's release method
+    var mockRelease = function(lock) {
+      lock.release = function(fn) {
+        delete Lock._acquiredLocks[lock.id];
+        return client.delAsync(lock.key).nodeify(fn);
+      };
+    };
+
+    beforeEach(function() {
+      lock = new Lock(client);
+      mockRelease(lock);
+    });
+
+    afterEach(function(done) {
+      if (lock.key) {
+        lock.release(done);
+      } else {
+        done();
+      }
+    });
+
+    it('is compatible with promises', function(done) {
+      lock.acquire('promisetest', function() {
+        return lock.release();
+      }).then(function() {
+        done();
+      }).catch(function(e) {
+        done(e);
+      });
+    });
+
+    it('is compatible with callbacks', function(done) {
+      lock.acquire('callbacktest', function(err) {
+        if (err) return done(err);
+
+        lock.release(function(err) {
+          if (err) return done(err);
+
+          done();
+        });
+      });
+    });
+
+    it('returns a LockAcquisitionError if already locked', function(done) {
+      lock.acquire('test:key').then(function() {
+        return lock.acquire('test:key');
+      }).catch(LockAcquisitionError, function(err) {
+        expect(err).to.be.an(LockAcquisitionError);
+        expect(err.message).to.be('Lock already held');
+        done();
+      });
+    });
+
+    it('returns an error if another lock was acquired for the key', function(done) {
+      client.setAsync('key:taken', 'aLockID').then(function() {
+        return lock.acquire('key:taken');
+      }).catch(LockAcquisitionError, function(err) {
+        expect(err).to.be.an(LockAcquisitionError);
+        expect(err.message).to.be('Could not acquire lock on key:taken');
+        done();
+      });
+    });
+
+    it('sets the locked property to true', function(done) {
+      lock.acquire('test:key').then(function() {
+        expect(lock.locked).to.be(true);
+        done();
+      });
+    });
+
+    it('sets its key property to the given key', function(done) {
+      var key = 'test:key';
+      lock.acquire(key).then(function() {
+        expect(lock.key).to.be(key);
+        done();
+      });
     });
   });
 });
