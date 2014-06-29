@@ -1,7 +1,7 @@
 redislock
 ===========
 
-Node locking using redis. Compatible with redis >= 2.2.0.
+Node locking using redis. Compatible with redis >= 2.6.12.
 
 ## Installation
 
@@ -15,6 +15,13 @@ You can also require it as a dependency in your `package.json` file:
 ```
 
 ## Overview
+
+Lock creation requires a new redis client, and accepts an object specifying
+the following three options:
+
+ * timeout: Time in milliseconds before which a lock expires (default: 10000 ms)
+ * retries: Maximum number of attempts to make in acquiring a lock (default: 0)
+ * delay:   Time in milliseconds to wait between each attempt (default: 100 ms)
 
 ``` javascript
 var client = require('redis').createClient();
@@ -82,3 +89,24 @@ co(function *(){
   }
 })();
 ```
+
+## Implementation
+
+Locking is performed using the following redis command:
+
+```
+SET key uuid PX timeout NX
+```
+
+If the SET returns OK, the lock has been acquired on the given key, and an
+expiration has been set. Then, releasing a lock uses the following sequence:
+```
+WATCH key  # Begin watching the key for changes
+GET key    # Retrieve its value, return an error if not equal to the lock's UUID
+MULTI      # Start transaction
+DEL key    # Delete the key
+EXEC       # Execute the transaction, which will fail if the key has changed
+```
+
+This ensures that the key is deleted only if it is currently holding the
+lock, as identified by the UUID.
