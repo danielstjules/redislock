@@ -12,10 +12,15 @@
         "type": "git",
         "url": "https://github.com/danielstjules/redislock.git"
     },
+    "dependencies": {
+        "bluebird": "*",
+        "node-uuid": "*"
+    },
     "devDependencies": {
         "mocha": "*",
         "expect.js": "*",
-        "fakeredis": "*"
+        "fakeredis": "*",
+        "sinon": "*"
     },
     "scripts": {
         "test": "./node_modules/.bin/mocha -R spec spec"

@@ -16,44 +16,69 @@ You can also require it as a dependency in your `package.json` file:
 
 ## Overview
 
-Defaults can be for a given instance of the module:
-
 ```
-// Require and set module defaults
-var client    = require('redis').createClient();
-var redislock = require('redislock')(client, {
+var client = require('redis').createClient();
+var lock   = require('redislock').createLock(client, {
   timeout: 10000,
   retries: 3,
   delay: 100
 });
 
-redislock.acquire(key, function(err, release) {
+lock.acquire('app:feature:lock', function(err) {
   // if (err) ... Failed to acquire the lock
 
-  release(function(err) {
+  lock.release(function(err) {
     // if (err) ... Failed to release
   });
 });
 ```
 
-Options can also be specified on a per mutex basis:
+Supports promises with bluebird out of the box:
 
 ```
 var client    = require('redis').createClient();
-var redislock = require('redislock')(client);
+var redislock = require('redislock');
+var lock      = redislock.createLock(client);
 
-// Specify options for use with a given lock
-var options = {
-  timeout: 10000,
-  retries: 3,
-  delay: 100
-}
+var LockAcquisitionError = redislock.LockAcquisitionError;
+var LockReleaseError     = redislock.LockReleaseError;
 
-redislock.acquire(key, options, function(err, release) {
-  // if (err) ... Failed to acquire the lock
-
-  release(function(err) {
-    // if (err) ... Failed to release
-  });
+lock.acquire('app:feature:lock').then(function() {
+  // Lock has been acquired
+  return lock.release();
+}).then(function() {
+ // Lock has been released
+}).catch(LockAcquisitionError, function(err) {
+  // The lock could not be acquired
+}).catch(LockReleaseError, function(err) {
+  // The lock could not be released
 });
+```
+
+And an example with co:
+
+```
+var co        = require('co');
+var client    = require('redis').createClient();
+var redislock = require('redislock');
+var lock      = redislock.createLock(client);
+
+var LockAcquisitionError = redislock.LockAcquisitionError;
+var LockReleaseError     = redislock.LockReleaseError;
+
+co(function *(){
+  try {
+    yield lock.acquire('app:feature:lock');
+
+    yield lock.release();
+  } catch(e) {
+    if (e instanceof LockAcquisitionError) {
+      // Failed to acquire the lock
+    } else if (e instanceof LockReleaseError) {
+      // Failed to release
+    } else {
+      // Other exceptions
+    }
+  }
+})();
 ```
