@@ -134,7 +134,7 @@ describe('lock', function() {
       });
     });
 
-    it('returns an error if another lock was acquired for the key', function(done) {
+    it('returns an error if retries is 0, and the key is not empty',function(done) {
       client.setAsync('key:taken', 'aLockID').then(function() {
         return lock.acquire('key:taken');
       }).catch(LockAcquisitionError, function(err) {
