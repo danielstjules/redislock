@@ -99,14 +99,35 @@ SET key uuid PX timeout NX
 ```
 
 If the SET returns OK, the lock has been acquired on the given key, and an
-expiration has been set. Then, releasing a lock uses the following sequence:
+expiration has been set. Then, releasing a lock uses the following redis script:
+
+``` lua
+if redis.call('GET', KEYS[1]) == ARGV[1] then
+  return redis.call('DEL', KEYS[1])
+end
+return 0
+```
+
+This ensures that the key is deleted only if it is currently holding the lock,
+by passing its UUID as an argument.
+
+#### Why not an alternative
+
+Some alternative locking implementations do not use a UUID, but instead simply
+invoke `SETNX`, assigning a timestamp. This has the problem of requiring
+synchronization of clocks between all instances to maintain timeout accuracy.
+Furthermore, freeing a lock risks deleting a key set by a different lock.
+
+Another technique used is to WATCH the key for changes, as described below:
+
 ```
 WATCH key  # Begin watching the key for changes
 GET key    # Retrieve its value, return an error if not equal to the lock's UUID
 MULTI      # Start transaction
 DEL key    # Delete the key
-EXEC       # Execute the transaction, which will fail if the key has changed
+EXEC       # Execute the transaction, which will fail if the key had expired
 ```
 
-This ensures that the key is deleted only if it is currently holding the
-lock, as identified by the UUID.
+However, this has the issue of requiring that you use a 1:1 mapping of redis
+clients to locks to ensure that a competing `MULTI` is not invoked, and that
+the release is unaffected by other watched keys.

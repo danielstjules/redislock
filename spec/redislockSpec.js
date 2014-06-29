@@ -1,6 +1,5 @@
 var expect = require('expect.js');
 var client = require('fakeredis').createClient(6379, '0.0.0.0', {fast: true});
-var sinon  = require('sinon');
 
 var redislock = require('../lib/redislock');
 var Lock      = require('../lib/lock');

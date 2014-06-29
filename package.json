@@ -14,13 +14,13 @@
     },
     "dependencies": {
         "bluebird": "*",
-        "node-uuid": "*"
+        "node-uuid": "*",
+        "redis-evalsha": "1.1.*"
     },
     "devDependencies": {
         "mocha": "*",
         "expect.js": "*",
-        "fakeredis": "*",
-        "sinon": "*"
+        "fakeredis": "*"
     },
     "scripts": {
         "test": "./node_modules/.bin/mocha -R spec spec"
