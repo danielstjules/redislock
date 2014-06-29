@@ -16,7 +16,7 @@ You can also require it as a dependency in your `package.json` file:
 
 ## Overview
 
-```
+``` javascript
 var client = require('redis').createClient();
 var lock   = require('redislock').createLock(client, {
   timeout: 10000,
@@ -35,7 +35,7 @@ lock.acquire('app:feature:lock', function(err) {
 
 Supports promises with bluebird out of the box:
 
-```
+``` javascript
 var client    = require('redis').createClient();
 var redislock = require('redislock');
 var lock      = redislock.createLock(client);
@@ -57,7 +57,7 @@ lock.acquire('app:feature:lock').then(function() {
 
 And an example with co:
 
-```
+``` javascript
 var co        = require('co');
 var client    = require('redis').createClient();
 var redislock = require('redislock');
