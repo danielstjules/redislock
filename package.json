@@ -1,29 +1,38 @@
 {
-    "name": "redislock",
-    "version": "0.0.0",
-    "description": "Node locking using redis",
-    "keywords": ["lock", "mutex", "exclusion", "redis", "critical",
-        "sync", "synchronization"],
-    "author": "Daniel St. Jules <danielst.jules@gmail.com>",
-    "licenses": ["MIT"],
-    "main": "lib/redislock.js",
-    "homepage": "https://github.com/danielstjules/redislock",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/danielstjules/redislock.git"
-    },
-    "dependencies": {
-        "bluebird": "*",
-        "node-uuid": "*",
-        "redis-evalsha": "1.1.*"
-    },
-    "devDependencies": {
-        "mocha": "*",
-        "expect.js": "*",
-        "fakeredis": "*",
-        "redis": "*"
-    },
-    "scripts": {
-        "test": "./node_modules/.bin/mocha -R spec spec"
-    }
+  "name": "redislock",
+  "version": "0.0.1",
+  "description": "Node locking using redis",
+  "keywords": [
+    "lock",
+    "mutex",
+    "exclusion",
+    "redis",
+    "critical",
+    "sync",
+    "synchronization"
+  ],
+  "author": "Daniel St. Jules <danielst.jules@gmail.com>",
+  "licenses": [
+    "MIT"
+  ],
+  "main": "lib/redislock.js",
+  "homepage": "https://github.com/danielstjules/redislock",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danielstjules/redislock.git"
+  },
+  "dependencies": {
+    "bluebird": "*",
+    "node-uuid": "*",
+    "redis-evalsha": "1.1.*"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "expect.js": "*",
+    "fakeredis": "*",
+    "redis": "*"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/mocha -R spec spec"
+  }
 }
