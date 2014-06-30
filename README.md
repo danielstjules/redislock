@@ -10,14 +10,14 @@ Node distributed locking using redis. Compatible with redis >= 2.6.12.
 * [Implementation](#implementation)
 * [Alternatives](#alternatives)
 * [Tests](#tests)
-* [redislock](#redislock)
-    * [redislock.createLock(client, \[options\])](#createlock)
+* [API](#api)
+    * [redislock.createLock(client, \[options\])](redislockcreatelockclient-options)
     * [redislock.setDefaults(options)](#redislocksetdefaultsoptions)
-    * [redislock.getAcquiredLocks()](#getacquiredlocks)
-    * [redislock.LockAcquisitionError](#lockacquisitionerror)
-    * [redislock.LockReleaseError](#lockreleaseerror)
-* [Class: Lock](#classlock)
-    * [lock.acquire(key, \[fn\])](#lockacquirekeyfn)
+    * [redislock.getAcquiredLocks()](#redislockgetacquiredlocks)
+    * [redislock.LockAcquisitionError](#redislocklockacquisitionerror)
+    * [redislock.LockReleaseError](#redislocklockreleaseerror)
+* [Class: Lock](#class-lock)
+    * [lock.acquire(key, \[fn\])](#lockacquirekey-fn)
     * [lock.release()](#lockrelease)
 
 ## Installation
@@ -161,7 +161,7 @@ redis-server configured on the default port and host, can be ran using
 `mocha spec/integration/`. Both tests suites are ran as part of the Travis CI
 build thanks to their support for services such as redis.
 
-## redislock
+## API
 
 The module exports three functions for lock creation and management, as well
 as two errors for simplified error handling when using promises.
