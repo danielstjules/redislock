@@ -27,7 +27,7 @@ Lock creation requires a new node_redis client, and accepts an object specifying
 the following three options:
 
  * timeout: Time in milliseconds before which a lock expires (default: 10000 ms)
- * retries: Maximum number of attempts to make in acquiring a lock (default: 0)
+ * retries: Maximum number of retries in acquiring a lock if the first attempt failed (default: 0)
  * delay:   Time in milliseconds to wait between each attempt (default: 100 ms)
 
 ``` javascript
@@ -61,7 +61,7 @@ lock.acquire('app:feature:lock').then(function() {
   // Lock has been acquired
   return lock.release();
 }).then(function() {
- // Lock has been released
+  // Lock has been released
 }).catch(LockAcquisitionError, function(err) {
   // The lock could not be acquired
 }).catch(LockReleaseError, function(err) {
