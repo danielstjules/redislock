@@ -20,7 +20,8 @@
     "devDependencies": {
         "mocha": "*",
         "expect.js": "*",
-        "fakeredis": "*"
+        "fakeredis": "*",
+        "redis": "*"
     },
     "scripts": {
         "test": "./node_modules/.bin/mocha -R spec spec"
