@@ -8,7 +8,17 @@ Node distributed locking using redis. Compatible with redis >= 2.6.12.
 * [Installation](#installation)
 * [Overview](#overview)
 * [Implementation](#implementation)
-* [Why not an alternative](#why-not-an-alternative)
+* [Alternatives](#alternatives)
+* [Tests](#tests)
+* [redislock](#redislock)
+    * [redislock.createLock(client, \[options\])](#createlock)
+    * [redislock.setDefaults(options)](#redislocksetdefaultsoptions)
+    * [redislock.getAcquiredLocks()](#getacquiredlocks)
+    * [redislock.LockAcquisitionError](#lockacquisitionerror)
+    * [redislock.LockReleaseError](#lockreleaseerror)
+* [Class: Lock](#classlock)
+    * [lock.acquire(key, \[fn\])](#lockacquirekeyfn)
+    * [lock.release()](#lockrelease)
 
 ## Installation
 
@@ -23,8 +33,10 @@ You can also require it as a dependency in your `package.json` file:
 
 ## Overview
 
-Lock creation requires a new node_redis client, and accepts an object specifying
-the following three options:
+redislock offers both atomic acquire and release operations, avoiding race
+conditions among clients, as well as the need for lock-specific redis
+connections. Lock creation requires a node_redis client, and accepts an
+object specifying the following three options:
 
  * timeout: Time in milliseconds before which a lock expires (default: 10000 ms)
  * retries: Maximum number of retries in acquiring a lock if the first attempt failed (default: 0)
@@ -47,7 +59,7 @@ lock.acquire('app:feature:lock', function(err) {
 });
 ```
 
-Supports promises with bluebird out of the box:
+Supports promises, thanks to bluebird, out of the box:
 
 ``` javascript
 var client    = require('redis').createClient();
@@ -118,7 +130,7 @@ return 0
 This ensures that the key is deleted only if it is currently holding the lock,
 by passing its UUID as an argument.
 
-## Why not an alternative
+## Alternatives
 
 Some alternative locking implementations do not use a random identifier, but
 instead simply invoke `SETNX`, assigning a timestamp. This has the problem of
@@ -126,8 +138,8 @@ requiring synchronization of clocks between all instances to maintain timeout
 accuracy. Furthermore, freeing a lock with such an implementation may risk
 deleting a key set by a different lock.
 
-Another technique used is to `WATCH` the key for changes when freeing, as
-described below:
+Another technique used is to `WATCH` the key for changes when freeing,
+achieving a CAS-like operation, as described below:
 
 ```
 WATCH key  # Begin watching the key for changes
@@ -140,3 +152,64 @@ EXEC       # Execute the transaction, which will fail if the key had expired
 However, this has the issue of requiring that you use a 1:1 mapping of redis
 clients to locks to ensure that a competing `MULTI` is not invoked, and that
 the release is unaffected by other watched keys.
+
+## Tests
+
+Unit and functional tests are available in the base spec directory, and can
+be ran using `npm test`. Additional integration tests, which require an active
+redis-server configured on the default port and host, can be ran using
+`mocha spec/integration/`. Both tests suites are ran as part of the Travis CI
+build thanks to their support for services such as redis.
+
+## redislock
+
+The module exports three functions for lock creation and management, as well
+as two errors for simplified error handling when using promises.
+
+#### redislock.createLock(client, [options])
+
+Creates and returns a new Lock instance, configured for use with the supplied
+redis client, as well as options, if provided. The options object may contain
+following three keys, as outlined at the start of the documentation: timeout,
+retries and delay.
+
+#### redislock.setDefaults(options)
+
+Sets the default options to be used by any new lock created by redislock.
+Only available options are modified, and all other keys are ignored.
+
+#### redislock.getAcquiredLocks()
+
+Returns an array of currently active/acquired locks.
+
+#### redislock.LockAcquisitionError
+
+The constructor for a LockAcquisitionError. Thrown or returned when a lock
+could not be acquired.
+
+#### redislock.LockReleaseError
+
+The constructor for a LockReleaseError. Thrown or returned when a lock
+could not be released.
+
+## Class: Lock
+
+The lock class exposed by redislock. Each instance is assigned a UUID v1 string
+as an id, and is configured to work with the given redis client. The default
+options from which is inherits may be changed by using redislock.setDefaults.
+
+#### lock.acquire[key, [fn]]
+
+Attempts to acquire a lock, given a key, and an optional callback function.
+If the initial lock fails, additional attempts will be made for the
+configured number of retries, and padded by the delay. The callback is
+invoked with an error on failure, and returns a promise if no callback is
+supplied. If invoked in the context of a promise, it may throw a
+LockAcquisionError.
+
+#### lock.release()
+
+Attempts to release the lock, and accepts an optional callback function.
+The callback is invoked with an error on failure, and returns a promise
+if no callback is supplied. If invoked in the context of a promise, it may
+throw a LockReleaseError.
