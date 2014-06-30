@@ -1,6 +1,7 @@
 var expect    = require('expect.js');
 var Promise   = require('bluebird');
 var fakeredis = require('fakeredis');
+var helpers   = require('./redisHelpers');
 var redislock = require('../lib/redislock');
 var Lock      = require('../lib/lock');
 
@@ -9,19 +10,7 @@ var LockReleaseError     = redislock.LockReleaseError;
 
 // Fakeredis doesn't support SET options such as PX and NX
 var client = fakeredis.createClient(6379, '0.0.0.0', {fast: true});
-client.origSet = client.set;
-client.set = function(key, val) {
-  var count = arguments.length;
-  var fn = arguments[count - 1];
-
-  client.get(key, function(err, res) {
-    if (err) return fn(err);
-    if (res) return fn(null, 0);
-
-    client.origSet(key, val, fn);
-  });
-};
-
+helpers.addSetOptions(client);
 Promise.promisifyAll(client);
 
 describe('lock', function() {
@@ -96,6 +85,7 @@ describe('lock', function() {
 
     afterEach(function(done) {
       if (lock.key) {
+        mockRelease(lock);
         lock.release(done);
       } else {
         done();
@@ -118,7 +108,6 @@ describe('lock', function() {
 
         lock.release(function(err) {
           if (err) return done(err);
-
           done();
         });
       });
@@ -157,6 +146,25 @@ describe('lock', function() {
         expect(lock.key).to.be(key);
         done();
       });
+    });
+
+    it('retries with the configured delay', function(done) {
+      // Bluebird.delay doesn't seem to play well with sinon time faking
+      // As a result, this test works, but is more fragile than I'd like
+      var key = 'retry:test';
+      lock = new Lock(client, {
+        timeout: 10000,
+        retries: 1,
+        delay:   10
+      });
+
+      setTimeout(function() {
+        client.del(key);
+      }, 9);
+
+      client.setAsync(key, 'testID').then(function(res) {
+        return lock.acquire(key);
+      }).then(done);
     });
   });
 });
