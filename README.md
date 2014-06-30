@@ -8,7 +8,7 @@ Node distributed locking using redis. Compatible with redis >= 2.6.12.
 * [Installation](#installation)
 * [Overview](#overview)
 * [Implementation](#implementation)
-* [Class: PatternEmitter](#class-patternemitter)
+* [Why not an alternative](#why-not-an-alternative)
 
 ## Installation
 
