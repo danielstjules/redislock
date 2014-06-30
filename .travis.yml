@@ -4,4 +4,4 @@ node_js:
   - "0.10"
 services:
   - redis-server
-script: "./node_modules/.bin/mocha -R spec spec/integration"
+script: "npm test && ./node_modules/.bin/mocha -R spec spec/integration"
