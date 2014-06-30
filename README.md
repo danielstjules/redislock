@@ -1,7 +1,14 @@
 redislock
 ===========
 
-Node locking using redis. Compatible with redis >= 2.6.12.
+Node distributed locking using redis. Compatible with redis >= 2.6.12.
+
+[![Build Status](https://travis-ci.org/danielstjules/redislock.png)](https://travis-ci.org/danielstjules/redislock)
+
+* [Installation](#installation)
+* [Overview](#overview)
+* [Implementation](#implementation)
+* [Class: PatternEmitter](#class-patternemitter)
 
 ## Installation
 
@@ -16,7 +23,7 @@ You can also require it as a dependency in your `package.json` file:
 
 ## Overview
 
-Lock creation requires a new redis client, and accepts an object specifying
+Lock creation requires a new node_redis client, and accepts an object specifying
 the following three options:
 
  * timeout: Time in milliseconds before which a lock expires (default: 10000 ms)
@@ -111,14 +118,15 @@ return 0
 This ensures that the key is deleted only if it is currently holding the lock,
 by passing its UUID as an argument.
 
-#### Why not an alternative
+## Why not an alternative
 
-Some alternative locking implementations do not use a UUID, but instead simply
-invoke `SETNX`, assigning a timestamp. This has the problem of requiring
-synchronization of clocks between all instances to maintain timeout accuracy.
-Furthermore, freeing a lock risks deleting a key set by a different lock.
+Some alternative locking implementations do not use a random identifier, but
+instead simply invoke `SETNX`, assigning a timestamp. This has the problem of
+requiring synchronization of clocks between all instances to maintain timeout
+accuracy. Furthermore, freeing a lock with such an implementation may risk
+deleting a key set by a different lock.
 
-Another technique used is to WATCH the key for changes when freeing, as
+Another technique used is to `WATCH` the key for changes when freeing, as
 described below:
 
 ```
