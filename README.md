@@ -40,12 +40,12 @@ object specifying the following three options:
 
  * timeout: Time in milliseconds before which a lock expires (default: 10000 ms)
  * retries: Maximum number of retries in acquiring a lock if the first attempt failed (default: 0)
- * delay:   Time in milliseconds to wait between each attempt (default: 100 ms)
+ * delay:   Time in milliseconds to wait between each attempt (default: 50 ms)
 
 ``` javascript
 var client = require('redis').createClient();
 var lock   = require('redislock').createLock(client, {
-  timeout: 10000,
+  timeout: 20000,
   retries: 3,
   delay: 100
 });
@@ -62,9 +62,8 @@ lock.acquire('app:feature:lock', function(err) {
 Supports promises, thanks to bluebird, out of the box:
 
 ``` javascript
-var client    = require('redis').createClient();
-var redislock = require('redislock');
-var lock      = redislock.createLock(client);
+var client = require('redis').createClient();
+var lock   = require('redislock').createLock(client);
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
@@ -84,10 +83,9 @@ lock.acquire('app:feature:lock').then(function() {
 And an example with co:
 
 ``` javascript
-var co        = require('co');
-var client    = require('redis').createClient();
-var redislock = require('redislock');
-var lock      = redislock.createLock(client);
+var co     = require('co');
+var client = require('redis').createClient();
+var lock   = require('redislock').createLock(client);
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
@@ -173,14 +171,41 @@ redis client, as well as options, if provided. The options object may contain
 following three keys, as outlined at the start of the documentation: timeout,
 retries and delay.
 
+``` javascript
+var lock = redislock.createLock(client, {
+  timeout: 10000,
+  retries: 3,
+  delay: 100
+})
+```
+
 #### redislock.setDefaults(options)
 
 Sets the default options to be used by any new lock created by redislock.
 Only available options are modified, and all other keys are ignored.
 
+``` javascript
+redislock.setDefaults({
+  timeout: 200000,
+  retries: 1,
+  delay: 50
+});
+```
+
 #### redislock.getAcquiredLocks()
 
 Returns an array of currently active/acquired locks.
+
+``` javascript
+// Create 3 locks, but only acquire 2
+redislock.createLock(client);
+
+redislock.createLock(client).acquire('app:lock1', function(err) {
+  redislock.createLock(client).acquire('app:lock2', function(err) {
+    var locks = redislock.getAcquiredLocks(); // [lock, lock]
+  });
+});
+```
 
 #### redislock.LockAcquisitionError
 
@@ -205,7 +230,14 @@ If the initial lock fails, additional attempts will be made for the
 configured number of retries, and padded by the delay. The callback is
 invoked with an error on failure, and returns a promise if no callback is
 supplied. If invoked in the context of a promise, it may throw a
-LockAcquisionError.
+LockAcquisitionError.
+
+``` javascript
+var lock = redislock.createLock(client);
+lock.acquire('example:lock', function(err) {
+  if (err) return console.log(err.message); // 'Lock already held'
+});
+```
 
 #### lock.release()
 
@@ -213,3 +245,16 @@ Attempts to release the lock, and accepts an optional callback function.
 The callback is invoked with an error on failure, and returns a promise
 if no callback is supplied. If invoked in the context of a promise, it may
 throw a LockReleaseError.
+
+``` javascript
+var lock = redislock.createLock(client);
+lock.acquire('app:lock', function(err) {
+  if (err) return;
+
+  setTimeout(function() {
+    lock.release(function(err) {
+      if (err) return console.log(err.message); // 'Lock on app:lock has expired'
+    });
+  }, 20000)
+});
+```
