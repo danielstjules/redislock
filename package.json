@@ -1,6 +1,6 @@
 {
   "name": "redislock",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Node locking using redis",
   "keywords": [
     "lock",
