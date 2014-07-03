@@ -22,7 +22,7 @@ Node distributed locking using redis. Compatible with redis >= 2.6.12.
 
 ## Installation
 
-Using npm, you can install pattern-emitter with `npm install redislock`.
+Using npm, you can install redislock with `npm install redislock`.
 You can also require it as a dependency in your `package.json` file:
 
 ```
