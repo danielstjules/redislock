@@ -24,13 +24,13 @@ describe('lock', function() {
     it('assigns the lock a UUID id', function() {
       var altLock = new Lock(client);
 
-      expect(lock.id).to.have.length(36);
-      expect(lock.id).not.to.be(altLock.id);
+      expect(lock._id).to.have.length(36);
+      expect(lock._id).not.to.be(altLock._id);
     });
 
     it('creates the lock with a null key, and locked set to false', function() {
-      expect(lock.key).to.be(null);
-      expect(lock.locked).to.be(false);
+      expect(lock._key).to.be(null);
+      expect(lock._locked).to.be(false);
     });
 
     it('stores the redis client in its _client property', function() {
@@ -73,8 +73,8 @@ describe('lock', function() {
     // Used to replace a Lock's release method
     var mockRelease = function(lock) {
       lock.release = function(fn) {
-        delete Lock._acquiredLocks[lock.id];
-        return client.delAsync(lock.key).nodeify(fn);
+        delete Lock._acquiredLocks[lock._id];
+        return client.delAsync(lock._key).nodeify(fn);
       };
     };
 
@@ -84,7 +84,7 @@ describe('lock', function() {
     });
 
     afterEach(function(done) {
-      if (lock.key) {
+      if (lock._key) {
         mockRelease(lock);
         lock.release(done);
       } else {
@@ -135,7 +135,7 @@ describe('lock', function() {
 
     it('sets the locked property to true', function(done) {
       lock.acquire('test:key').then(function() {
-        expect(lock.locked).to.be(true);
+        expect(lock._locked).to.be(true);
         done();
       });
     });
@@ -143,7 +143,7 @@ describe('lock', function() {
     it('sets its key property to the given key', function(done) {
       var key = 'test:key';
       lock.acquire(key).then(function() {
-        expect(lock.key).to.be(key);
+        expect(lock._key).to.be(key);
         done();
       });
     });

@@ -31,7 +31,7 @@ describe('lock', function() {
         return client.getAsync(key);
       })
       .then(function(res) {
-        expect(res).to.be(lock.id);
+        expect(res).to.be(lock._id);
         return lock.release();
       })
       .then(function() {
@@ -39,8 +39,8 @@ describe('lock', function() {
       })
       .then(function(res) {
         expect(res).to.be(null);
-        expect(lock.locked).to.be(false);
-        expect(lock.key).to.be(null);
+        expect(lock._locked).to.be(false);
+        expect(lock._key).to.be(null);
         done();
       })
       .catch(function(err) {
@@ -54,7 +54,7 @@ describe('lock', function() {
         return client.getAsync(key);
       })
       .then(function(res) {
-        expect(res).to.be(lock.id);
+        expect(res).to.be(lock._id);
         return client.setAsync(key, 'mismatch');
       })
       .then(function() {
@@ -63,8 +63,8 @@ describe('lock', function() {
       .catch(function(err) {
         expect(err).to.be.an(LockReleaseError);
         expect(err.message).to.be('Lock on integration:test has expired');
-        expect(lock.locked).to.be(false);
-        expect(lock.key).to.be(null);
+        expect(lock._locked).to.be(false);
+        expect(lock._key).to.be(null);
         done();
       });
     });

@@ -18,7 +18,7 @@ Node distributed locking using redis. Compatible with redis >= 2.6.12.
     * [redislock.LockReleaseError](#redislocklockreleaseerror)
 * [Class: Lock](#class-lock)
     * [lock.acquire(key, \[fn\])](#lockacquirekey-fn)
-    * [lock.release()](#lockrelease)
+    * [lock.release(\[fn\])](#lockreleasefn)
 
 ## Installation
 
@@ -151,6 +151,11 @@ However, this has the issue of requiring that you use a 1:1 mapping of redis
 clients to locks to ensure that a competing `MULTI` is not invoked, and that
 the release is unaffected by other watched keys.
 
+In addition to the above, most locking libraries aren't compatible with promises
+by default, and due to their API, require "promisifying" individual locks.
+`redislock` avoids this issue by taking advantage of bluebird's `nodeify`
+function to offer an API that easily supports both callbacks and promises.
+
 ## Tests
 
 Unit and functional tests are available in the base spec directory, and can
@@ -239,7 +244,7 @@ lock.acquire('example:lock', function(err) {
 });
 ```
 
-#### lock.release()
+#### lock.release([fn])
 
 Attempts to release the lock, and accepts an optional callback function.
 The callback is invoked with an error on failure, and returns a promise
