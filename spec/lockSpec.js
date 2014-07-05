@@ -1,9 +1,12 @@
 var expect    = require('expect.js');
 var Promise   = require('bluebird');
 var fakeredis = require('fakeredis');
-var helpers   = require('./redisHelpers');
-var redislock = require('../lib/redislock');
-var Lock      = require('../lib/lock');
+var rewire    = require('rewire');
+
+var helpers         = require('./redisHelpers');
+var mockShavaluator = require('./mockShavaluator');
+var redislock       = require('../lib/redislock');
+var Lock            = rewire('../lib/lock');
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
@@ -14,6 +17,11 @@ helpers.addSetOptions(client);
 Promise.promisifyAll(client);
 
 describe('lock', function() {
+  before(function() {
+    // Mock out redis-evalsha to emulate the lua script in unit tests
+    Lock.__set__('Shavaluator', mockShavaluator);
+  });
+
   describe('constructor', function() {
     var lock;
 
@@ -70,7 +78,7 @@ describe('lock', function() {
   describe('acquire', function() {
     var lock;
 
-    // Used to replace a Lock's release method
+    // Used to mock a Lock's release method
     var mockRelease = function(lock) {
       lock.release = function(fn) {
         delete Lock._acquiredLocks[lock._id];
@@ -165,6 +173,54 @@ describe('lock', function() {
       client.setAsync(key, 'testID').then(function(res) {
         return lock.acquire(key);
       }).then(done);
+    });
+  });
+
+  describe('release', function() {
+    var lock;
+
+    // Used to mock a Lock's acquire method
+    var mockAcquire = function(lock) {
+      lock.acquire = function(key, fn) {
+        Lock._acquiredLocks[lock._id] = lock;
+        lock._locked = true;
+        lock._key = key;
+        return client.setAsync(key, lock._id).nodeify(fn);
+      };
+    };
+
+    beforeEach(function() {
+      lock = new Lock(client);
+      mockAcquire(lock);
+    });
+
+    it('is compatible with promises', function(done) {
+      lock.acquire('promisetest', function() {
+        return lock.release();
+      }).then(function() {
+        done();
+      }).catch(function(e) {
+        done(e);
+      });
+    });
+
+    it('is compatible with callbacks', function(done) {
+      lock.acquire('callbacktest', function(err) {
+        if (err) return done(err);
+
+        lock.release(function(err) {
+          if (err) return done(err);
+          done();
+        });
+      });
+    });
+
+    it('returns a LockReleaseError if not already locked', function(done) {
+      lock.release().catch(LockReleaseError, function(err) {
+        expect(err).to.be.an(LockReleaseError);
+        expect(err.message).to.be('Lock has not been acquired');
+        done();
+      });
     });
   });
 });

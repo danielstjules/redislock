@@ -30,7 +30,8 @@
     "mocha": "*",
     "expect.js": "*",
     "fakeredis": "*",
-    "redis": "*"
+    "redis": "*",
+    "rewire": "*"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha -R spec spec"
