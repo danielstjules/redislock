@@ -136,7 +136,7 @@ describe('lock', function() {
         return lock.acquire('key:taken');
       }).catch(LockAcquisitionError, function(err) {
         expect(err).to.be.an(LockAcquisitionError);
-        expect(err.message).to.be('Could not acquire lock on key:taken');
+        expect(err.message).to.be('Could not acquire lock on "key:taken"');
         done();
       });
     });
@@ -219,6 +219,30 @@ describe('lock', function() {
       lock.release().catch(LockReleaseError, function(err) {
         expect(err).to.be.an(LockReleaseError);
         expect(err.message).to.be('Lock has not been acquired');
+        done();
+      });
+    });
+
+    it('sets _locked to false, and _key to null', function(done) {
+      lock.acquire('propertytest').then(function() {
+        return lock.release();
+      }).then(function() {
+        expect(lock._locked).to.be(false);
+        expect(lock._key).to.be(null);
+        done();
+      }).catch(function(e) {
+        done(e);
+      });
+    });
+
+    it('returns a LockReleaseError if the lock had expired', function(done) {
+      lock.acquire('expiredtest').then(function() {
+        return client.delAsync('expiredtest');
+      }).then(function() {
+        return lock.release();
+      }).catch(function(err) {
+        expect(err).to.be.an(LockReleaseError);
+        expect(err.message).to.be('Lock on "expiredtest" had expired');
         done();
       });
     });

@@ -62,7 +62,7 @@ describe('lock', function() {
       })
       .catch(function(err) {
         expect(err).to.be.an(LockReleaseError);
-        expect(err.message).to.be('Lock on integration:test has expired');
+        expect(err.message).to.be('Lock on "integration:test" had expired');
         expect(lock._locked).to.be(false);
         expect(lock._key).to.be(null);
         done();
