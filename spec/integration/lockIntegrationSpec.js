@@ -24,6 +24,26 @@ describe('lock', function() {
     client.del(key, done);
   });
 
+  it('can be used multiple times', function(done) {
+    lock.acquire(key)
+    .then(function() {
+      return lock.release();
+    })
+    .then(function() {
+      return lock.acquire(key);
+    })
+    .then(function() {
+      return client.getAsync(key);
+    })
+    .then(function(res) {
+      expect(res).to.be(lock._id);
+      done();
+    })
+    .catch(function(err) {
+      done(err);
+    });
+  });
+
   describe('acquire', function() {
     it('sets the key if not held by another lock', function(done) {
       lock.acquire(key)

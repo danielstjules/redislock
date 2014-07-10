@@ -156,6 +156,15 @@ describe('lock', function() {
       });
     });
 
+    it('adds the lock to Lock._acquiredLocks', function(done) {
+      lock.acquire('propertytest').then(function() {
+        expect(Lock._acquiredLocks[lock._id]).to.be(lock);
+        done();
+      }).catch(function(e) {
+        done(e);
+      });
+    });
+
     it('retries with the configured delay', function(done) {
       // Bluebird.delay doesn't seem to play well with sinon time faking
       // As a result, this test works, but is more fragile than I'd like
@@ -229,6 +238,18 @@ describe('lock', function() {
       }).then(function() {
         expect(lock._locked).to.be(false);
         expect(lock._key).to.be(null);
+        done();
+      }).catch(function(e) {
+        done(e);
+      });
+    });
+
+    it('removes the lock from Lock._acquiredLocks', function(done) {
+      lock.acquire('propertytest').then(function() {
+        expect(Lock._acquiredLocks[lock._id]).to.be(lock);
+        return lock.release();
+      }).then(function() {
+        expect(Lock._acquiredLocks).to.be.empty();
         done();
       }).catch(function(e) {
         done(e);
