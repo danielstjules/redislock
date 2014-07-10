@@ -1,13 +1,14 @@
 {
   "name": "redislock",
   "version": "1.0.0",
-  "description": "Node locking using redis",
+  "description": "Node distributed locking using redis",
   "keywords": [
     "lock",
     "mutex",
     "exclusion",
     "redis",
     "critical",
+    "distributed",
     "sync",
     "synchronization"
   ],
