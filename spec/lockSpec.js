@@ -105,9 +105,7 @@ describe('lock', function() {
         return lock.release();
       }).then(function() {
         done();
-      }).catch(function(e) {
-        done(e);
-      });
+      }).catch(done);
     });
 
     it('is compatible with callbacks', function(done) {
@@ -160,9 +158,7 @@ describe('lock', function() {
       lock.acquire('propertytest').then(function() {
         expect(Lock._acquiredLocks[lock._id]).to.be(lock);
         done();
-      }).catch(function(e) {
-        done(e);
-      });
+      }).catch(done);
     });
 
     it('retries with the configured delay', function(done) {
@@ -208,9 +204,7 @@ describe('lock', function() {
         return lock.release();
       }).then(function() {
         done();
-      }).catch(function(e) {
-        done(e);
-      });
+      }).catch(done);
     });
 
     it('is compatible with callbacks', function(done) {
@@ -239,9 +233,7 @@ describe('lock', function() {
         expect(lock._locked).to.be(false);
         expect(lock._key).to.be(null);
         done();
-      }).catch(function(e) {
-        done(e);
-      });
+      }).catch(done);
     });
 
     it('removes the lock from Lock._acquiredLocks', function(done) {
@@ -251,9 +243,7 @@ describe('lock', function() {
       }).then(function() {
         expect(Lock._acquiredLocks).to.be.empty();
         done();
-      }).catch(function(e) {
-        done(e);
-      });
+      }).catch(done);
     });
 
     it('returns a LockReleaseError if the lock had expired', function(done) {

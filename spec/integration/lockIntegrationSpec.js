@@ -39,9 +39,7 @@ describe('lock', function() {
       expect(res).to.be(lock._id);
       done();
     })
-    .catch(function(err) {
-      done(err);
-    });
+    .catch(done);
   });
 
   describe('acquire', function() {
@@ -56,9 +54,7 @@ describe('lock', function() {
         expect(lock._key).to.be(key);
         done();
       })
-      .catch(function(err) {
-        done(err);
-      });
+      .catch(done);
     });
 
     it('throws an error if the key is already in use', function(done) {
@@ -93,9 +89,7 @@ describe('lock', function() {
         expect(lock._key).to.be(null);
         done();
       })
-      .catch(function(err) {
-        done(err);
-      });
+      .catch(done);
     });
 
     it('throws an error if the key no longer belongs to the lock', function(done) {
