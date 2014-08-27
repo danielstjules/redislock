@@ -11,7 +11,7 @@ Node distributed locking using redis. Compatible with redis >= 2.6.12.
 * [Alternatives](#alternatives)
 * [Tests](#tests)
 * [API](#api)
-    * [redislock.createLock(client, \[options\])](redislockcreatelockclient-options)
+    * [redislock.createLock(client, \[options\])](#redislockcreatelockclient-options)
     * [redislock.setDefaults(options)](#redislocksetdefaultsoptions)
     * [redislock.getAcquiredLocks()](#redislockgetacquiredlocks)
     * [redislock.LockAcquisitionError](#redislocklockacquisitionerror)
