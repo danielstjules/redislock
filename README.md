@@ -1,5 +1,4 @@
-redislock
-===========
+![redislock](http://danielstjules.com/github/redislock-logo.png)
 
 Node distributed locking using redis. Compatible with redis >= 2.6.12.
 
