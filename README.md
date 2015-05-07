@@ -21,12 +21,12 @@ Node distributed locking using redis. Compatible with redis >= 2.6.12.
 
 ## Installation
 
-Using npm, you can install redislock with `npm install redislock`.
+Using npm, you can install redislock with `npm install ioredis-lock -S`.
 You can also require it as a dependency in your `package.json` file:
 
 ```
 "dependencies": {
-    "redislock": "*"
+    "ioredis-lock": "*"
 }
 ```
 
@@ -44,7 +44,7 @@ object specifying the following three options:
 ``` javascript
 var Redis = require('ioredis');
 var client = new Redis();
-var lock   = require('redislock').createLock(client, {
+var lock   = require('ioredis-lock').createLock(client, {
   timeout: 20000,
   retries: 3,
   delay: 100
@@ -64,7 +64,7 @@ Supports promises, thanks to bluebird, out of the box:
 ``` javascript
 var Redis = require('ioredis');
 var client = new Redis();
-var lock   = require('redislock').createLock(client);
+var lock   = require('ioredis-lock').createLock(client);
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
@@ -87,7 +87,7 @@ And an example with co:
 var co     = require('co');
 var Redis = require('ioredis');
 var client = new Redis();
-var lock   = require('redislock').createLock(client);
+var lock   = require('ioredis-lock').createLock(client);
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
