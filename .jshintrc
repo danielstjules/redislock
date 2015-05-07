@@ -1,0 +1,19 @@
+{
+  "node": true,
+  "browser": true,
+  "devel": true,
+  "strict": true,
+  "globalstrict": true,
+  "curly": true,
+  "camelcase": false,
+  "eqeqeq": true,
+  "indent": 4,
+  "latedef": true,
+  "newcap": true,
+  "noarg": true,
+  "quotmark": "single",
+  "regexp": true,
+  "unused": true,
+  "undef": true,
+  "esnext": false
+}

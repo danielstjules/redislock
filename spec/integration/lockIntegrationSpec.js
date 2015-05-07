@@ -1,16 +1,18 @@
+/* global describe, beforeEach, afterEach, it */
+
+'use strict';
+
 /**
  * The following tests are designed to run against a live redis-server instance.
  */
 
 var expect    = require('expect.js');
-var Promise   = require('bluebird');
-var client    = require('redis').createClient();
+var Redis     = require('ioredis');
+var client    = new Redis();
 var redislock = require('../../lib/redislock');
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
-
-Promise.promisifyAll(client);
 
 describe('lock', function() {
   var lock;
@@ -33,7 +35,7 @@ describe('lock', function() {
       return lock.acquire(key);
     })
     .then(function() {
-      return client.getAsync(key);
+      return client.get(key);
     })
     .then(function(res) {
       expect(res).to.be(lock._id);
@@ -46,7 +48,7 @@ describe('lock', function() {
     it('sets the key if not held by another lock', function(done) {
       lock.acquire(key)
       .then(function() {
-        return client.getAsync(key);
+        return client.get(key);
       })
       .then(function(res) {
         expect(res).to.be(lock._id);
@@ -81,7 +83,7 @@ describe('lock', function() {
         return lock.release();
       })
       .then(function() {
-        return client.getAsync(key);
+        return client.get(key);
       })
       .then(function(res) {
         expect(res).to.be(null);
@@ -95,7 +97,7 @@ describe('lock', function() {
     it('throws an error if the key no longer belongs to the lock', function(done) {
       lock.acquire(key)
       .then(function() {
-        return client.setAsync(key, 'mismatch');
+        return client.set(key, 'mismatch');
       })
       .then(function() {
         return lock.release();

@@ -1,38 +1,39 @@
 {
-  "name": "redislock",
-  "version": "1.0.2",
-  "description": "Node distributed locking using redis",
+  "name": "ioredis-lock",
+  "version": "1.0.0",
+  "description": "Node distributed locking using redis with ioredis adapter",
   "keywords": [
     "lock",
     "mutex",
     "exclusion",
     "redis",
+    "ioredis",
     "critical",
     "distributed",
     "sync",
     "synchronization"
   ],
   "author": "Daniel St. Jules <danielst.jules@gmail.com>",
+  "contributors": [
+    "Vitaly Aminev <v@aminev.me>"
+  ],
   "licenses": [
     "MIT"
   ],
   "main": "lib/redislock.js",
-  "homepage": "https://github.com/danielstjules/redislock",
+  "homepage": "https://github.com/avvs/redislock",
   "repository": {
     "type": "git",
-    "url": "https://github.com/danielstjules/redislock.git"
+    "url": "https://github.com/avvs/redislock.git"
   },
   "dependencies": {
-    "bluebird": "*",
-    "node-uuid": "*",
-    "redis-evalsha": "1.1.*"
+    "bluebird": "^2.9.25",
+    "node-uuid": "^1.4.3"
   },
   "devDependencies": {
-    "mocha": "*",
     "expect.js": "*",
-    "fakeredis": "*",
-    "redis": "*",
-    "rewire": "*"
+    "ioredis": "^1.2.0",
+    "mocha": "*"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha -R spec spec"

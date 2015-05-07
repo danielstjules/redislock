@@ -42,7 +42,8 @@ object specifying the following three options:
  * delay:   Time in milliseconds to wait between each attempt (default: 50 ms)
 
 ``` javascript
-var client = require('redis').createClient();
+var Redis = require('ioredis');
+var client = new Redis();
 var lock   = require('redislock').createLock(client, {
   timeout: 20000,
   retries: 3,
@@ -61,7 +62,8 @@ lock.acquire('app:feature:lock', function(err) {
 Supports promises, thanks to bluebird, out of the box:
 
 ``` javascript
-var client = require('redis').createClient();
+var Redis = require('ioredis');
+var client = new Redis();
 var lock   = require('redislock').createLock(client);
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
@@ -83,7 +85,8 @@ And an example with co:
 
 ``` javascript
 var co     = require('co');
-var client = require('redis').createClient();
+var Redis = require('ioredis');
+var client = new Redis();
 var lock   = require('redislock').createLock(client);
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
