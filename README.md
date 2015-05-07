@@ -2,7 +2,7 @@
 
 Node distributed locking using redis. Compatible with redis >= 2.6.12.
 
-[![Build Status](https://travis-ci.org/avvs/redislock.png)](https://travis-ci.org/avvs/redislock)
+[![Build Status](https://travis-ci.org/AVVS/redislock.svg)](https://travis-ci.org/AVVS/redislock)
 
 * [Installation](#installation)
 * [Overview](#overview)
