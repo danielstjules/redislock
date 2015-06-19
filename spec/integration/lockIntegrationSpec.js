@@ -13,6 +13,7 @@ var redislock = require('../../lib/redislock');
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
+var LockExtendError      = redislock.LockExtendError;
 
 describe('lock', function() {
   var lock;
@@ -72,6 +73,41 @@ describe('lock', function() {
         expect(lock2._locked).to.be(false);
         expect(lock2._key).to.be(null);
         done();
+      });
+    });
+  });
+
+  describe('extend', function () {
+    it('extends the lock if it has not expired', function() {
+      return lock.acquire(key)
+      .then(function() {
+        return client.pttl(key);
+      })
+      .then(function(ttl) {
+        expect(ttl).to.be.within(9900, 10000);
+        return lock.extend(30000);
+      })
+      .then(function() {
+        return client.pttl(key);
+      })
+      .then(function(ttl) {
+        expect(ttl).to.be.within(29900, 30000);
+      });
+    });
+
+    it('throw an error if the key no longer belongs to the lock', function() {
+      return lock.acquire(key)
+      .then(function() {
+        return client.set(key, 'mismatch');
+      })
+      .then(function() {
+        return lock.extend();
+      })
+      .catch(function(err) {
+        expect(err).to.be.an(LockExtendError);
+        expect(err.message).to.be('Lock on "integration:test" had expired');
+        expect(lock._locked).to.be(false);
+        expect(lock._key).to.be(null);
       });
     });
   });

@@ -17,6 +17,7 @@ Node distributed locking using redis. Compatible with redis >= 2.6.12.
     * [redislock.LockReleaseError](#redislocklockreleaseerror)
 * [Class: Lock](#class-lock)
     * [lock.acquire(key, \[fn\])](#lockacquirekey-fn)
+    * [lock.extend(timeout, \[fn\])](#lockextendtimeout-fn)
     * [lock.release(\[fn\])](#lockreleasefn)
 
 ## Installation
@@ -26,7 +27,7 @@ You can also require it as a dependency in your `package.json` file:
 
 ```
 "dependencies": {
-    "ioredis-lock": "*"
+    "ioredis-lock": "~1.1.0"
 }
 ```
 
@@ -224,6 +225,11 @@ could not be acquired.
 The constructor for a LockReleaseError. Thrown or returned when a lock
 could not be released.
 
+#### redislock.LockExtendError
+
+The constructor for a LockExtendError. Thrown or returned when a lock
+could not be extended.
+
 ## Class: Lock
 
 The lock class exposed by redislock. Each instance is assigned a UUID v1 string
@@ -243,6 +249,28 @@ LockAcquisitionError.
 var lock = redislock.createLock(client);
 lock.acquire('example:lock', function(err) {
   if (err) return console.log(err.message); // 'Lock already held'
+});
+```
+
+#### lock.extend[timeout, [fn]]
+
+Attempts to extend a lock for a period of `timeout`, if it is falsy, then a
+default timeout is used. Accepts an optional callback `fn`
+
+```js
+var lock = redislock.createLock(client);
+lock.acquire('app:lock', function(err) {
+  if (err) return;
+
+  setTimeout(function () {
+    // ms, for 1 min
+    lock.extend(60000, function (err) {
+      if (err) return console.log(err.message); // 'Lock on app:lock has expired' or redis erro
+
+      // continue working with lock
+    });
+
+  }, 5000);
 });
 ```
 

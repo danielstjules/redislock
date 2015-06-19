@@ -27,13 +27,13 @@
     "url": "https://github.com/avvs/redislock.git"
   },
   "dependencies": {
-    "bluebird": "^2.9.25",
+    "bluebird": "^2.9.30",
     "node-uuid": "^1.4.3"
   },
   "devDependencies": {
     "expect.js": "*",
-    "ioredis": "^1.2.0",
-    "mocha": "*"
+    "ioredis": "^1.5.1",
+    "mocha": "^2.2.5"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha -R spec spec"
