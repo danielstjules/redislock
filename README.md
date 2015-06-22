@@ -15,6 +15,7 @@ Node distributed locking using redis. Compatible with redis >= 2.6.12.
     * [redislock.getAcquiredLocks()](#redislockgetacquiredlocks)
     * [redislock.LockAcquisitionError](#redislocklockacquisitionerror)
     * [redislock.LockReleaseError](#redislocklockreleaseerror)
+    * [redislock.LockExtendError](#redislocklockextenderror)
 * [Class: Lock](#class-lock)
     * [lock.acquire(key, \[fn\])](#lockacquirekey-fn)
     * [lock.release(\[fn\])](#lockreleasefn)
@@ -66,6 +67,7 @@ var lock   = require('redislock').createLock(client);
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
+var LockExtendError      = redislock.LockExtendError;
 
 lock.acquire('app:feature:lock').then(function() {
   // Lock has been acquired
@@ -88,6 +90,7 @@ var lock   = require('redislock').createLock(client);
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
+var LockExtendError      = redislock.LockExtendError;
 
 co(function *(){
   try {
@@ -221,6 +224,11 @@ could not be acquired.
 The constructor for a LockReleaseError. Thrown or returned when a lock
 could not be released.
 
+#### redislock.LockExtendError
+
+The constructor for a LockExtendError. Thrown or returned when a lock
+could not be extended.
+
 ## Class: Lock
 
 The lock class exposed by redislock. Each instance is assigned a UUID v1 string
@@ -257,6 +265,26 @@ lock.acquire('app:lock', function(err) {
 
   setTimeout(function() {
     lock.release(function(err) {
+      if (err) return console.log(err.message); // 'Lock on app:lock has expired'
+    });
+  }, 20000)
+});
+```
+
+#### lock.extend(time, [fn])
+
+Attempts to extend the timeout of a lock, and accepts an optional callback function.
+The callback is invoked with an error on failure, and returns a promise
+if no callback is supplied. If invoked in the context of a promise, it may
+throw a LockExtendError.
+
+``` javascript
+var lock = redislock.createLock(client);
+lock.acquire('app:lock', function(err) {
+  if (err) return;
+
+  setTimeout(function() {
+    lock.extend(20000, function(err) {
       if (err) return console.log(err.message); // 'Lock on app:lock has expired'
     });
   }, 20000)
