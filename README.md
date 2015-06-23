@@ -19,6 +19,7 @@ Node distributed locking using redis. Compatible with redis >= 2.6.12.
 * [Class: Lock](#class-lock)
     * [lock.acquire(key, \[fn\])](#lockacquirekey-fn)
     * [lock.release(\[fn\])](#lockreleasefn)
+    * [lock.extend(key, \[fn\])](#lockextendtime-fn)
 
 ## Installation
 
@@ -273,10 +274,10 @@ lock.acquire('app:lock', function(err) {
 
 #### lock.extend(time, [fn])
 
-Attempts to extend the timeout of a lock, and accepts an optional callback function.
-The callback is invoked with an error on failure, and returns a promise
-if no callback is supplied. If invoked in the context of a promise, it may
-throw a LockExtendError.
+Attempts to extend the timeout of a lock, and accepts an optional callback
+function. The callback is invoked with an error on failure, and returns a
+promise if no callback is supplied. If invoked in the context of a promise,
+it may throw a LockExtendError.
 
 ``` javascript
 var lock = redislock.createLock(client);
