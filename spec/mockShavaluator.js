@@ -22,6 +22,7 @@ Shavaluator.prototype.exec = function(name, keys, args, fn) {
   if (!this.scripts[name]) {
     return fn(new Error('Script not found'));
   } else if (name === 'delifequal') {
+    // See scripts.js delifequal
     this.client.get(keys[0], function(err, res) {
       if (res !== args[0]) return fn(null, 0);
 
@@ -30,6 +31,7 @@ Shavaluator.prototype.exec = function(name, keys, args, fn) {
       });
     });
   } else if (name === 'pexpireifequal') {
+    // See scripts.js pexpireifequal
     this.client.get(keys[0], function(err, res) {
       if (res !== args[0]) return fn(null, 0);
 

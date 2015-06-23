@@ -100,21 +100,17 @@ describe('lock', function() {
       mockRelease(lock);
     });
 
-    afterEach(function(done) {
+    afterEach(function() {
       if (lock._key) {
         mockRelease(lock);
-        lock.release(done);
-      } else {
-        done();
+        return lock.release();
       }
     });
 
-    it('is compatible with promises', function(done) {
-      lock.acquire('promisetest', function() {
+    it('is compatible with promises', function() {
+      return lock.acquire('promisetest', function() {
         return lock.release();
-      }).then(function() {
-        done();
-      }).catch(done);
+      });
     });
 
     it('is compatible with callbacks', function(done) {
@@ -128,49 +124,44 @@ describe('lock', function() {
       });
     });
 
-    it('returns a LockAcquisitionError if already locked', function(done) {
-      lock.acquire('test:key').then(function() {
+    it('returns a LockAcquisitionError if already locked', function() {
+      return lock.acquire('test:key').then(function() {
         return lock.acquire('test:key');
       }).catch(LockAcquisitionError, function(err) {
         expect(err).to.be.an(LockAcquisitionError);
         expect(err.message).to.be('Lock already held');
-        done();
       });
     });
 
-    it('returns an error if retries is 0, and the key is not empty',function(done) {
-      client.setAsync('key:taken', 'aLockID').then(function() {
+    it('returns an error if retries is 0, and the key is not empty',function() {
+      return client.setAsync('key:taken', 'aLockID').then(function() {
         return lock.acquire('key:taken');
       }).catch(LockAcquisitionError, function(err) {
         expect(err).to.be.an(LockAcquisitionError);
         expect(err.message).to.be('Could not acquire lock on "key:taken"');
-        done();
       });
     });
 
-    it('sets the locked property to true', function(done) {
-      lock.acquire('test:key').then(function() {
+    it('sets the locked property to true', function() {
+      return lock.acquire('test:key').then(function() {
         expect(lock._locked).to.be(true);
-        done();
       });
     });
 
-    it('sets its key property to the given key', function(done) {
+    it('sets its key property to the given key', function() {
       var key = 'test:key';
-      lock.acquire(key).then(function() {
+      return lock.acquire(key).then(function() {
         expect(lock._key).to.be(key);
-        done();
       });
     });
 
-    it('adds the lock to Lock._acquiredLocks', function(done) {
-      lock.acquire('propertytest').then(function() {
+    it('adds the lock to Lock._acquiredLocks', function() {
+      return lock.acquire('propertytest').then(function() {
         expect(Lock._acquiredLocks[lock._id]).to.be(lock);
-        done();
-      }).catch(done);
+      });
     });
 
-    it('retries with the configured delay', function(done) {
+    it('retries with the configured delay', function() {
       // Bluebird.delay doesn't seem to play well with sinon time faking
       // As a result, this test works, but is more fragile than I'd like
       var key = 'retry:test';
@@ -184,9 +175,9 @@ describe('lock', function() {
         client.del(key);
       }, 9);
 
-      client.setAsync(key, 'testID').then(function(res) {
+      return client.setAsync(key, 'testID').then(function(res) {
         return lock.acquire(key);
-      }).then(done);
+      });
     });
   });
 
@@ -196,12 +187,10 @@ describe('lock', function() {
       mockAcquire(lock);
     });
 
-    it('is compatible with promises', function(done) {
-      lock.acquire('promisetest', function() {
+    it('is compatible with promises', function() {
+      return lock.acquire('promisetest', function() {
         return lock.release();
-      }).then(function() {
-        done();
-      }).catch(done);
+      });
     });
 
     it('is compatible with callbacks', function(done) {
@@ -215,43 +204,39 @@ describe('lock', function() {
       });
     });
 
-    it('returns a LockReleaseError if not already locked', function(done) {
-      lock.release().catch(LockReleaseError, function(err) {
+    it('returns a LockReleaseError if not already locked', function() {
+      return lock.release().catch(LockReleaseError, function(err) {
         expect(err).to.be.an(LockReleaseError);
         expect(err.message).to.be('Lock has not been acquired');
-        done();
       });
     });
 
-    it('sets _locked to false, and _key to null', function(done) {
-      lock.acquire('propertytest').then(function() {
+    it('sets _locked to false, and _key to null', function() {
+      return lock.acquire('propertytest').then(function() {
         return lock.release();
       }).then(function() {
         expect(lock._locked).to.be(false);
         expect(lock._key).to.be(null);
-        done();
-      }).catch(done);
+      });
     });
 
-    it('removes the lock from Lock._acquiredLocks', function(done) {
-      lock.acquire('propertytest').then(function() {
+    it('removes the lock from Lock._acquiredLocks', function() {
+      return lock.acquire('propertytest').then(function() {
         expect(Lock._acquiredLocks[lock._id]).to.be(lock);
         return lock.release();
       }).then(function() {
         expect(Lock._acquiredLocks).to.be.empty();
-        done();
-      }).catch(done);
+      });
     });
 
-    it('returns a LockReleaseError if the lock had expired', function(done) {
-      lock.acquire('expiredtest').then(function() {
+    it('returns a LockReleaseError if the lock had expired', function() {
+      return lock.acquire('expiredtest').then(function() {
         return client.delAsync('expiredtest');
       }).then(function() {
         return lock.release();
       }).catch(function(err) {
         expect(err).to.be.an(LockReleaseError);
         expect(err.message).to.be('Lock on "expiredtest" had expired');
-        done();
       });
     });
   });
@@ -262,21 +247,17 @@ describe('lock', function() {
       mockAcquire(lock);
     });
 
-    afterEach(function(done) {
+    afterEach(function() {
       if (lock._key) {
         mockRelease(lock);
-        lock.release(done);
-      } else {
-        done();
+        return lock.release();
       }
     });
 
-    it('is compatible with promises', function(done) {
-      lock.acquire('promisetest', function() {
+    it('is compatible with promises', function() {
+      return lock.acquire('promisetest', function() {
         return lock.extend(10);
-      }).then(function() {
-        done();
-      }).catch(done);
+      });
     });
 
     it('is compatible with callbacks', function(done) {
@@ -290,23 +271,37 @@ describe('lock', function() {
       });
     });
 
-    it('returns a LockExtendError if not already locked', function(done) {
-      lock.extend(10).catch(LockExtendError, function(err) {
+    it('returns a LockExtendError if not already locked', function() {
+      return lock.extend(10).catch(LockExtendError, function(err) {
         expect(err).to.be.an(LockExtendError);
         expect(err.message).to.be('Lock has not been acquired');
-        done();
       });
     });
 
-    it('returns a LockExtendError if the lock had expired', function(done) {
-      lock.acquire('expiredtest').then(function() {
-        return client.delAsync('expiredtest');
+    it('extends the pttl', function() {
+      var key = 'extendtest';
+      var time = 10000;
+
+      return lock.acquire(key).then(function() {
+        return lock.extend(time);
+      }).then(function() {
+        return client.pttlAsync(key);
+      }).then(function(ttl) {
+        // Compensate for delay
+        expect(ttl).to.be.greaterThan(time - 100);
+      });
+    });
+
+    it('returns a LockExtendError if the lock had expired', function() {
+      var key = 'expiredtest';
+
+      return lock.acquire(key).then(function() {
+        return client.delAsync(key);
       }).then(function() {
         return lock.extend(10);
       }).catch(function(err) {
         expect(err).to.be.an(LockExtendError);
         expect(err.message).to.be('Lock on "expiredtest" had expired');
-        done();
       });
     });
   });
