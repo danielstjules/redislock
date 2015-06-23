@@ -10,6 +10,7 @@ var Lock            = rewire('../lib/lock');
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
+var LockExtendError      = redislock.LockExtendError;
 
 // Fakeredis doesn't support SET options such as PX and NX
 var client = fakeredis.createClient(6379, '0.0.0.0', {fast: true});
@@ -17,14 +18,32 @@ helpers.addSetOptions(client);
 Promise.promisifyAll(client);
 
 describe('lock', function() {
+  var lock;
+
+  // Used to mock a Lock's acquire method
+  var mockAcquire = function(lock) {
+    lock.acquire = function(key, fn) {
+      Lock._acquiredLocks[lock._id] = lock;
+      lock._locked = true;
+      lock._key = key;
+      return client.setAsync(key, lock._id).nodeify(fn);
+    };
+  };
+
+  // Used to mock a Lock's release method
+  var mockRelease = function(lock) {
+    lock.release = function(fn) {
+      delete Lock._acquiredLocks[lock._id];
+      return client.delAsync(lock._key).nodeify(fn);
+    };
+  };
+
   before(function() {
     // Mock out redis-evalsha to emulate the lua script in unit tests
     Lock.__set__('Shavaluator', mockShavaluator);
   });
 
   describe('constructor', function() {
-    var lock;
-
     beforeEach(function() {
       lock = new Lock(client);
     });
@@ -76,16 +95,6 @@ describe('lock', function() {
   });
 
   describe('acquire', function() {
-    var lock;
-
-    // Used to mock a Lock's release method
-    var mockRelease = function(lock) {
-      lock.release = function(fn) {
-        delete Lock._acquiredLocks[lock._id];
-        return client.delAsync(lock._key).nodeify(fn);
-      };
-    };
-
     beforeEach(function() {
       lock = new Lock(client);
       mockRelease(lock);
@@ -182,18 +191,6 @@ describe('lock', function() {
   });
 
   describe('release', function() {
-    var lock;
-
-    // Used to mock a Lock's acquire method
-    var mockAcquire = function(lock) {
-      lock.acquire = function(key, fn) {
-        Lock._acquiredLocks[lock._id] = lock;
-        lock._locked = true;
-        lock._key = key;
-        return client.setAsync(key, lock._id).nodeify(fn);
-      };
-    };
-
     beforeEach(function() {
       lock = new Lock(client);
       mockAcquire(lock);
@@ -253,6 +250,61 @@ describe('lock', function() {
         return lock.release();
       }).catch(function(err) {
         expect(err).to.be.an(LockReleaseError);
+        expect(err.message).to.be('Lock on "expiredtest" had expired');
+        done();
+      });
+    });
+  });
+
+  describe('extend', function() {
+    beforeEach(function() {
+      lock = new Lock(client);
+      mockAcquire(lock);
+    });
+
+    afterEach(function(done) {
+      if (lock._key) {
+        mockRelease(lock);
+        lock.release(done);
+      } else {
+        done();
+      }
+    });
+
+    it('is compatible with promises', function(done) {
+      lock.acquire('promisetest', function() {
+        return lock.extend(10);
+      }).then(function() {
+        done();
+      }).catch(done);
+    });
+
+    it('is compatible with callbacks', function(done) {
+      lock.acquire('callbacktest', function(err) {
+        if (err) return done(err);
+
+        lock.extend(10, function(err) {
+          if (err) return done(err);
+          done();
+        });
+      });
+    });
+
+    it('returns a LockExtendError if not already locked', function(done) {
+      lock.extend(10).catch(LockExtendError, function(err) {
+        expect(err).to.be.an(LockExtendError);
+        expect(err.message).to.be('Lock has not been acquired');
+        done();
+      });
+    });
+
+    it('returns a LockExtendError if the lock had expired', function(done) {
+      lock.acquire('expiredtest').then(function() {
+        return client.delAsync('expiredtest');
+      }).then(function() {
+        return lock.extend(10);
+      }).catch(function(err) {
+        expect(err).to.be.an(LockExtendError);
         expect(err.message).to.be('Lock on "expiredtest" had expired');
         done();
       });

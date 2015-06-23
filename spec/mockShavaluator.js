@@ -21,17 +21,23 @@ Shavaluator.prototype.exec = function(name, keys, args, fn) {
   var shavaluator = this;
   if (!this.scripts[name]) {
     return fn(new Error('Script not found'));
-  }
+  } else if (name === 'delifequal') {
+    this.client.get(keys[0], function(err, res) {
+      if (res !== args[0]) return fn(null, 0);
 
-  this.client.get(keys[0], function(err, res) {
-    if (res !== args[0]) {
-      return fn(null, 0);
-    }
-
-    shavaluator.client.del(keys[0], function(err) {
-      return fn(null, 1);
+      shavaluator.client.del(keys[0], function(err) {
+        return fn(null, 1);
+      });
     });
-  });
+  } else if (name === 'pexpireifequal') {
+    this.client.get(keys[0], function(err, res) {
+      if (res !== args[0]) return fn(null, 0);
+
+      shavaluator.client.pexpire(keys[0], args[1], function(err) {
+        return fn(null, 1);
+      });
+    });
+  }
 };
 
 module.exports = Shavaluator;
