@@ -9,6 +9,7 @@ var redislock = require('../../lib/redislock');
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
+var LockExtendError      = redislock.LockExtendError;
 
 Promise.promisifyAll(client);
 
@@ -82,6 +83,38 @@ describe('lock', function() {
         return lock.release();
       }).catch(function(err) {
         expect(err).to.be.an(LockReleaseError);
+        expect(err.message).to.be('Lock on "integration:test" had expired');
+        expect(lock._locked).to.be(false);
+        expect(lock._key).to.be(null);
+        done();
+      });
+    });
+  });
+
+  describe('extend', function() {
+    it('extends the key ttl if held by the current lock', function() {
+      return lock.acquire(key).then(function() {
+        return lock.extend(10000);
+      }).then(function() {
+        return client.pttlAsync(key);
+      }).then(function(ttl) {
+        // Compensate for delay
+        expect(ttl).to.be.within(9000, 10000);
+        return client.getAsync(key);
+      }).then(function(res) {
+        expect(res).to.be(lock._id);
+        expect(lock._locked).to.be(true);
+        expect(lock._key).to.be(key);
+      });
+    });
+
+    it('throws an error if the key no longer belongs to the lock', function(done) {
+      lock.acquire(key).then(function() {
+        return client.setAsync(key, 'mismatch');
+      }).then(function() {
+        return lock.extend(10000);
+      }).catch(function(err) {
+        expect(err).to.be.an(LockExtendError);
         expect(err.message).to.be('Lock on "integration:test" had expired');
         expect(lock._locked).to.be(false);
         expect(lock._key).to.be(null);

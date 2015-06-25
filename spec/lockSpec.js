@@ -288,7 +288,7 @@ describe('lock', function() {
         return client.pttlAsync(key);
       }).then(function(ttl) {
         // Compensate for delay
-        expect(ttl).to.be.greaterThan(time - 100);
+        expect(ttl).to.be.within(time - 100, time);
       });
     });
 
