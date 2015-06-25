@@ -1,6 +1,9 @@
 ![redislock](http://danielstjules.com/github/redislock-logo.png)
 
-Node distributed locking using redis. Compatible with redis >= 2.6.12.
+Node distributed locking using redis with lua scripts. Compatible with
+redis >= 2.6.12. A better alternative to locking strategies based on SETNX or
+WATCH/MULTI. Refer to [Implementation](#implementation) and
+[Alternatives](#alternatives) for details.
 
 [![Build Status](https://travis-ci.org/danielstjules/redislock.png)](https://travis-ci.org/danielstjules/redislock)
 
@@ -8,7 +11,6 @@ Node distributed locking using redis. Compatible with redis >= 2.6.12.
 * [Overview](#overview)
 * [Implementation](#implementation)
 * [Alternatives](#alternatives)
-* [Tests](#tests)
 * [API](#api)
     * [redislock.createLock(client, \[options\])](#redislockcreatelockclient-options)
     * [redislock.setDefaults(options)](#redislocksetdefaultsoptions)
@@ -20,6 +22,7 @@ Node distributed locking using redis. Compatible with redis >= 2.6.12.
     * [lock.acquire(key, \[fn\])](#lockacquirekey-fn)
     * [lock.release(\[fn\])](#lockreleasefn)
     * [lock.extend(key, \[fn\])](#lockextendtime-fn)
+* [Tests](#tests)
 
 ## Installation
 
@@ -129,7 +132,15 @@ return 0
 ```
 
 This ensures that the key is deleted only if it is currently holding the lock,
-by passing its UUID as an argument.
+by passing its UUID as an argument. Extending a lock is done with a similar
+lua script:
+
+``` lua
+if redis.call('GET', KEYS[1]) == ARGV[1] then
+  return redis.call('PEXPIRE', KEYS[1], ARGV[2])
+end
+return 0
+```
 
 ## Alternatives
 
@@ -158,14 +169,6 @@ In addition to the above, most locking libraries aren't compatible with promises
 by default, and due to their API, require "promisifying" individual locks.
 `redislock` avoids this issue by taking advantage of bluebird's `nodeify`
 function to offer an API that easily supports both callbacks and promises.
-
-## Tests
-
-Unit and functional tests are available in the base spec directory, and can
-be ran using `npm test`. Additional integration tests, which require an active
-redis-server configured on the default port and host, can be ran using
-`mocha spec/integration/`. Both tests suites are ran as part of the Travis CI
-build thanks to their support for services such as redis.
 
 ## API
 
@@ -291,3 +294,11 @@ lock.acquire('app:lock', function(err) {
   }, 20000)
 });
 ```
+
+## Tests
+
+Unit and functional tests are available in the base spec directory, and can
+be ran using `npm test`. Additional integration tests, which require an active
+redis-server configured on the default port and host, can be ran using
+`mocha spec/integration/`. Both tests suites are ran as part of the Travis CI
+build thanks to their support for services such as redis.
