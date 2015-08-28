@@ -350,6 +350,20 @@ describe('lock', function() {
     });
 
     describe('with promises', function() {
+      it('returns a LockExtendError if not time is provided', function() {
+        return lock.extend().catch(LockExtendError, function(err) {
+          expect(err).to.be.an(LockExtendError);
+          expect(err.message).to.be('Int time is required to extend lock');
+        });
+      });
+
+      it('returns a LockExtendError if not provided an int', function() {
+        return lock.extend('10').catch(LockExtendError, function(err) {
+          expect(err).to.be.an(LockExtendError);
+          expect(err.message).to.be('Int time is required to extend lock');
+        });
+      });
+
       it('returns a LockExtendError if not already locked', function() {
         return lock.extend(10).catch(LockExtendError, function(err) {
           expect(err).to.be.an(LockExtendError);
@@ -386,6 +400,22 @@ describe('lock', function() {
     });
 
     describe('with callbacks', function() {
+      it('returns a LockExtendError if no time is provided', function(done) {
+        lock.extend(null, function(err) {
+          expect(err).to.be.an(LockExtendError);
+          expect(err.message).to.be('Int time is required to extend lock');
+          done();
+        });
+      });
+
+      it('returns a LockExtendError if not provided an int', function(done) {
+        lock.extend('10', function(err) {
+          expect(err).to.be.an(LockExtendError);
+          expect(err.message).to.be('Int time is required to extend lock');
+          done();
+        });
+      });
+
       it('returns a LockExtendError if not already locked', function(done) {
         lock.extend(10, function(err) {
           expect(err).to.be.an(LockExtendError);
