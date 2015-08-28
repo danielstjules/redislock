@@ -28,13 +28,13 @@
     "redis-evalsha": "~1.1.1"
   },
   "devDependencies": {
-    "mocha": "*",
     "expect.js": "*",
     "fakeredis": "*",
+    "mocha": "*",
     "redis": "*",
     "rewire": "*"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha -R spec spec"
+    "test": "mocha -R spec spec"
   }
 }
