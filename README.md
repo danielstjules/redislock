@@ -5,8 +5,6 @@ redis >= 2.6.12. A better alternative to locking strategies based on SETNX or
 WATCH/MULTI. Refer to [Implementation](#implementation) and
 [Alternatives](#alternatives) for details.
 
-[![Build Status](https://travis-ci.org/AVVS/redislock.svg)](https://travis-ci.org/AVVS/redislock)
-
 * [Installation](#installation)
 * [Overview](#overview)
 * [Implementation](#implementation)
