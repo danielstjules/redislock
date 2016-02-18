@@ -1,109 +1,97 @@
 /* global describe, beforeEach, afterEach, it */
 
-'use strict';
-
 /**
  * The following tests are designed to run against a live redis-server instance.
  */
 
-var expect    = require('expect.js');
-var Redis     = require('ioredis');
-var client    = new Redis();
-var redislock = require('../../lib/redislock');
+const expect = require('expect.js');
+const Redis = require('ioredis');
+const client = new Redis();
+const redislock = require('../../lib/redislock');
 
-var LockAcquisitionError = redislock.LockAcquisitionError;
-var LockReleaseError     = redislock.LockReleaseError;
-var LockExtendError      = redislock.LockExtendError;
+const LockAcquisitionError = redislock.LockAcquisitionError;
+const LockReleaseError = redislock.LockReleaseError;
+const LockExtendError = redislock.LockExtendError;
 
-describe('lock', function() {
-  var lock;
-  var key = 'integration:test';
+describe('lock', () => {
+  const key = 'integration:test';
+  let lock;
 
-  beforeEach(function() {
+  beforeEach(() => {
     lock = redislock.createLock(client);
   });
 
-  afterEach(function(done) {
+  afterEach(done => {
     client.del(key, done);
   });
 
-  it('can be used multiple times', function(done) {
-    lock.acquire(key)
-    .then(function() {
+  it('can be used multiple times', () => {
+    return lock.acquire(key).then(() => {
       return lock.release();
-    })
-    .then(function() {
+    }).then(() => {
       return lock.acquire(key);
     })
-    .then(function() {
+    .then(() => {
       return client.get(key);
     })
-    .then(function(res) {
+    .then(res => {
       expect(res).to.be(lock._id);
-      done();
-    })
-    .catch(done);
+    });
   });
 
-  describe('acquire', function() {
-    it('sets the key if not held by another lock', function(done) {
-      lock.acquire(key)
-      .then(function() {
-        return client.get(key);
-      })
-      .then(function(res) {
-        expect(res).to.be(lock._id);
-        expect(lock._locked).to.be(true);
-        expect(lock._key).to.be(key);
-        done();
-      })
-      .catch(done);
+  describe('acquire', () => {
+    it('sets the key if not held by another lock', () => {
+      return lock
+        .acquire(key)
+        .then(() => client.get(key))
+        .then(res => {
+          expect(res).to.be(lock._id);
+          expect(lock._locked).to.be(true);
+          expect(lock._key).to.be(key);
+        });
     });
 
-    it('throws an error if the key is already in use', function(done) {
-      var lock2 = redislock.createLock(client);
+    it('throws an error if the key is already in use', () => {
+      const lock2 = redislock.createLock(client);
 
-      lock.acquire(key)
-      .then(function() {
+      return lock.acquire(key).then(() => {
         return lock2.acquire(key);
-      })
-      .catch(function(err) {
+      }).catch(err => {
         expect(err).to.be.an(LockAcquisitionError);
         expect(err.message).to.be('Could not acquire lock on "integration:test"');
         expect(lock2._locked).to.be(false);
         expect(lock2._key).to.be(null);
-        done();
       });
     });
   });
 
-  describe('extend', function () {
-    it('extends the lock if it has not expired', function() {
+  describe('extend', () => {
+    it('extends the lock if it has not expired', () => {
       return lock.acquire(key)
-      .then(function() {
+      .then(() => {
         return client.pttl(key);
       })
-      .then(function(ttl) {
+      .then(ttl => {
         expect(ttl).to.be.within(9900, 10000);
         return lock.extend(30000);
       })
-      .then(function() {
+      .then(() => {
         return client.pttl(key);
       })
-      .then(function(ttl) {
+      .then(ttl => {
         expect(ttl).to.be.within(29900, 30000);
       });
     });
 
-    it('throw an error if the key no longer belongs to the lock', function() {
+    it('throw an error if the key no longer belongs to the lock', () => {
       return lock.acquire(key)
-      .then(function() {
+      .then(() => {
         return client.set(key, 'mismatch');
       })
-      .then(function() {
+      .then(() => {
         return lock.extend();
       })
-      .catch(function(err) {
+      .catch(err => {
         expect(err).to.be.an(LockExtendError);
         expect(err.message).to.be('Lock on "integration:test" had expired');
         expect(lock._locked).to.be(false);
@@ -112,38 +100,64 @@ describe('lock', function() {
     });
   });
 
-  describe('release', function() {
-    it('deletes the key if held by the current lock', function(done) {
-      lock.acquire(key)
-      .then(function() {
+  describe('release', () => {
+    it('deletes the key if held by the current lock', () => {
+      return lock.acquire(key).then(() => {
         return lock.release();
       })
-      .then(function() {
+      .then(() => {
         return client.get(key);
       })
-      .then(function(res) {
+      .then(res => {
         expect(res).to.be(null);
         expect(lock._locked).to.be(false);
         expect(lock._key).to.be(null);
-        done();
-      })
-      .catch(done);
+      });
     });
 
-    it('throws an error if the key no longer belongs to the lock', function(done) {
-      lock.acquire(key)
-      .then(function() {
+    it('throws an error if the key no longer belongs to the lock', () => {
+      return lock.acquire(key)
+      .then(() => {
         return client.set(key, 'mismatch');
       })
-      .then(function() {
+      .then(() => {
         return lock.release();
-      })
-      .catch(function(err) {
+      }).catch(err => {
         expect(err).to.be.an(LockReleaseError);
         expect(err.message).to.be('Lock on "integration:test" had expired');
         expect(lock._locked).to.be(false);
         expect(lock._key).to.be(null);
-        done();
+      });
+    });
+  });
+
+  describe('extend', () => {
+    it('extends the key ttl if held by the current lock', () => {
+      return lock.acquire(key).then(() => {
+        return lock.extend(10000);
+      }).then(() => {
+        return client.pttl(key);
+      }).then(ttl => {
+        // Compensate for delay
+        expect(ttl).to.be.within(9000, 10000);
+        return client.get(key);
+      }).then(res => {
+        expect(res).to.be(lock._id);
+        expect(lock._locked).to.be(true);
+        expect(lock._key).to.be(key);
+      });
+    });
+
+    it('throws an error if the key no longer belongs to the lock', () => {
+      lock.acquire(key).then(() => {
+        return client.set(key, 'mismatch');
+      }).then(() => {
+        return lock.extend(10000);
+      }).catch(err => {
+        expect(err).to.be.an(LockExtendError);
+        expect(err.message).to.be('Lock on "integration:test" had expired');
+        expect(lock._locked).to.be(false);
+        expect(lock._key).to.be(null);
       });
     });
   });

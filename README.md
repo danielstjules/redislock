@@ -1,6 +1,9 @@
-![redislock](http://danielstjules.com/github/redislock-logo.png)
+![ioredis-lock](http://danielstjules.com/github/redislock-logo.png)
 
-Node distributed locking using redis. Compatible with redis >= 2.6.12.
+Node distributed locking using redis with lua scripts. Compatible with
+redis >= 2.6.12. A better alternative to locking strategies based on SETNX or
+WATCH/MULTI. Refer to [Implementation](#implementation) and
+[Alternatives](#alternatives) for details.
 
 [![Build Status](https://travis-ci.org/AVVS/redislock.svg)](https://travis-ci.org/AVVS/redislock)
 
@@ -8,26 +11,28 @@ Node distributed locking using redis. Compatible with redis >= 2.6.12.
 * [Overview](#overview)
 * [Implementation](#implementation)
 * [Alternatives](#alternatives)
-* [Tests](#tests)
 * [API](#api)
     * [redislock.createLock(client, \[options\])](#redislockcreatelockclient-options)
     * [redislock.setDefaults(options)](#redislocksetdefaultsoptions)
     * [redislock.getAcquiredLocks()](#redislockgetacquiredlocks)
     * [redislock.LockAcquisitionError](#redislocklockacquisitionerror)
     * [redislock.LockReleaseError](#redislocklockreleaseerror)
+    * [redislock.LockExtendError](#redislocklockextenderror)
 * [Class: Lock](#class-lock)
     * [lock.acquire(key, \[fn\])](#lockacquirekey-fn)
-    * [lock.extend(timeout, \[fn\])](#lockextendtimeout-fn)
     * [lock.release(\[fn\])](#lockreleasefn)
+    * [lock.extend(time, \[fn\])](#lockextendtime-fn)
+* [Tests](#tests)
 
 ## Installation
 
 Using npm, you can install redislock with `npm install ioredis-lock -S`.
+
 You can also require it as a dependency in your `package.json` file:
 
 ```
 "dependencies": {
-    "ioredis-lock": "~1.1.0"
+    "ioredis-lock": "~2.0.0"
 }
 ```
 
@@ -43,69 +48,73 @@ object specifying the following three options:
  * delay:   Time in milliseconds to wait between each attempt (default: 50 ms)
 
 ``` javascript
-var Redis = require('ioredis');
-var client = new Redis();
-var lock   = require('ioredis-lock').createLock(client, {
+const Promise = require('bluebird');
+const Redis = require('ioredis');
+const client = new Redis();
+const lock = require('ioredis-lock').createLock(client, {
   timeout: 20000,
   retries: 3,
-  delay: 100
+  delay: 100,
 });
 
-lock.acquire('app:feature:lock', function(err) {
-  // if (err) ... Failed to acquire the lock
-
-  lock.release(function(err) {
-    // if (err) ... Failed to release
+// this uses bind feature of `bluebird`
+Promise
+  .bind(lock)
+  .call('acquire', 'app:feature:lock')
+  .catch(err => {
+    // handle err
+  })
+  .call('release')
+  .catch(err => {
+    // handle err
+  })
+  .then(() => {
+    // all good
   });
 });
 ```
 
 Supports promises, thanks to bluebird, out of the box:
 
-``` javascript
-var Redis = require('ioredis');
-var client = new Redis();
-var lock   = require('ioredis-lock').createLock(client);
+```javascript
+const Redis = require('ioredis');
+const client = new Redis();
+const lock = require('ioredis-lock').createLock(client);
 
-var LockAcquisitionError = redislock.LockAcquisitionError;
-var LockReleaseError     = redislock.LockReleaseError;
+const LockAcquisitionError = redislock.LockAcquisitionError;
+const LockReleaseError = redislock.LockReleaseError;
 
-lock.acquire('app:feature:lock').then(function() {
+lock.acquire('app:feature:lock').then(() => {
   // Lock has been acquired
   return lock.release();
-}).then(function() {
+}).then(() => {
   // Lock has been released
-}).catch(LockAcquisitionError, function(err) {
+}).catch(LockAcquisitionError, (err) => {
   // The lock could not be acquired
-}).catch(LockReleaseError, function(err) {
+}).catch(LockReleaseError, (err) => {
   // The lock could not be released
 });
 ```
 
 And an example with co:
 
-``` javascript
-var co     = require('co');
-var Redis = require('ioredis');
-var client = new Redis();
-var lock   = require('ioredis-lock').createLock(client);
-
-var LockAcquisitionError = redislock.LockAcquisitionError;
-var LockReleaseError     = redislock.LockReleaseError;
+```javascript
+const co = require('co');
+const Redis = require('ioredis');
+const client = new Redis();
+const lock = require('ioredis-lock').createLock(client);
 
 co(function *(){
   try {
     yield lock.acquire('app:feature:lock');
+  } catch (e) {
+    // Failed to acquire the lock
+  }
 
+  try {
     yield lock.release();
-  } catch(e) {
-    if (e instanceof LockAcquisitionError) {
-      // Failed to acquire the lock
-    } else if (e instanceof LockReleaseError) {
-      // Failed to release
-    } else {
-      // Other exceptions
-    }
+  } catch (e) {
+    // Failed to release
   }
 })();
 ```
@@ -129,7 +138,15 @@ return 0
 ```
 
 This ensures that the key is deleted only if it is currently holding the lock,
-by passing its UUID as an argument.
+by passing its UUID as an argument. Extending a lock is done with a similar
+lua script:
+
+``` lua
+if redis.call('GET', KEYS[1]) == ARGV[1] then
+  return redis.call('PEXPIRE', KEYS[1], ARGV[2])
+end
+return 0
+```
 
 ## Alternatives
 
@@ -158,14 +175,6 @@ In addition to the above, most locking libraries aren't compatible with promises
 by default, and due to their API, require "promisifying" individual locks.
 `redislock` avoids this issue by taking advantage of bluebird's `nodeify`
 function to offer an API that easily supports both callbacks and promises.
-
-## Tests
-
-Unit and functional tests are available in the base spec directory, and can
-be ran using `npm test`. Additional integration tests, which require an active
-redis-server configured on the default port and host, can be ran using
-`mocha spec/integration/`. Both tests suites are ran as part of the Travis CI
-build thanks to their support for services such as redis.
 
 ## API
 
@@ -210,7 +219,7 @@ redislock.createLock(client);
 
 redislock.createLock(client).acquire('app:lock1', function(err) {
   redislock.createLock(client).acquire('app:lock2', function(err) {
-    var locks = redislock.getAcquiredLocks(); // [lock, lock]
+    const locks = redislock.getAcquiredLocks(); // [lock, lock]
   });
 });
 ```
@@ -246,50 +255,53 @@ supplied. If invoked in the context of a promise, it may throw a
 LockAcquisitionError.
 
 ``` javascript
-var lock = redislock.createLock(client);
+const lock = redislock.createLock(client);
 lock.acquire('example:lock', function(err) {
   if (err) return console.log(err.message); // 'Lock already held'
 });
 ```
 
-#### lock.extend[timeout, [fn]]
+#### lock.release([fn])
 
-Attempts to extend a lock for a period of `timeout`, if it is falsy, then a
-default timeout is used. Accepts an optional callback `fn`
+Attempts to release the lock, and accepts an optional callback function. The callback is invoked with an error on failure, and returns a promise if no callback is supplied. If invoked in the context of a promise, it may throw a LockReleaseError.
 
 ```js
-var lock = redislock.createLock(client);
-lock.acquire('app:lock', function(err) {
+const lock = redislock.createLock(client);
+lock.acquire('app:lock', err => {
   if (err) return;
 
-  setTimeout(function () {
-    // ms, for 1 min
-    lock.extend(60000, function (err) {
-      if (err) return console.log(err.message); // 'Lock on app:lock has expired' or redis erro
-
-      // continue working with lock
+  setTimeout(() => {
+    lock.release(err => {
+      if (err) return console.log(err.message); // 'Lock on app:lock has expired'
     });
-
-  }, 5000);
+  }, 20000);
 });
 ```
 
-#### lock.release([fn])
+#### lock.extend(time, [fn])
 
-Attempts to release the lock, and accepts an optional callback function.
-The callback is invoked with an error on failure, and returns a promise
-if no callback is supplied. If invoked in the context of a promise, it may
-throw a LockReleaseError.
+Attempts to extend the timeout of a lock, and accepts an optional callback
+function. The callback is invoked with an error on failure, and returns a
+promise if no callback is supplied. If invoked in the context of a promise,
+it may throw a LockExtendError.
 
 ``` javascript
-var lock = redislock.createLock(client);
+const lock = redislock.createLock(client);
 lock.acquire('app:lock', function(err) {
   if (err) return;
 
   setTimeout(function() {
-    lock.release(function(err) {
+    lock.extend(20000, function(err) {
       if (err) return console.log(err.message); // 'Lock on app:lock has expired'
     });
   }, 20000)
 });
 ```
+
+## Tests
+
+Unit and functional tests are available in the base spec directory, and can
+be ran using `npm test`. Additional integration tests, which require an active
+redis-server configured on the default port and host, can be ran using
+`mocha spec/integration/`. Both tests suites are ran as part of the Travis CI
+build thanks to their support for services such as redis.

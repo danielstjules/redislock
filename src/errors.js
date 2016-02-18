@@ -1,10 +1,6 @@
-'use strict';
-
 /**
  * Contains the potential errors thrown by a lock.
  */
-
-var util = require('util');
 
 /**
  * The constructor for a LockAcquisitionError. Thrown or returned when a lock
@@ -15,10 +11,11 @@ var util = require('util');
  *
  * @param {string} message The message to assign the error
  */
-function LockAcquisitionError(message) {
-  Error.captureStackTrace(this, LockAcquisitionError);
-  this.name = 'LockAcquisitionError';
-  this.message = message;
+class LockAcquisitionError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'LockAcquisitionError';
+  }
 }
 
 /**
@@ -30,10 +27,11 @@ function LockAcquisitionError(message) {
  *
  * @param {string} message The message to assign the error
  */
-function LockReleaseError(message) {
-  Error.captureStackTrace(this, LockReleaseError);
-  this.name = 'LockReleaseError';
-  this.message = message;
+class LockReleaseError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'LockReleaseError';
+  }
 }
 
 /**
@@ -45,16 +43,13 @@ function LockReleaseError(message) {
  *
  * @param {string} message The message to assign the error
  */
-function LockExtendError(message) {
-  Error.captureStackTrace(this, LockExtendError);
-  this.name = 'LockExtendError';
-  this.message = message;
+class LockExtendError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'LockExtendError';
+  }
 }
 
-util.inherits(LockAcquisitionError, Error);
-util.inherits(LockReleaseError, Error);
-util.inherits(LockExtendError, Error);
-
 exports.LockAcquisitionError = LockAcquisitionError;
-exports.LockReleaseError     = LockReleaseError;
-exports.LockExtendError      = LockExtendError;
+exports.LockReleaseError = LockReleaseError;
+exports.LockExtendError = LockExtendError;

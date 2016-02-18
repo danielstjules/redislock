@@ -1,6 +1,6 @@
 {
   "name": "ioredis-lock",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "description": "Node distributed locking using redis with ioredis adapter",
   "keywords": [
     "lock",
@@ -15,27 +15,39 @@
   ],
   "author": "Daniel St. Jules <danielst.jules@gmail.com>",
   "contributors": [
-    "Vitaly Aminev <v@aminev.me>"
+    "Vitaly Aminev <v@makeomatic.ru>"
   ],
-  "licenses": [
-    "MIT"
-  ],
+  "license": "MIT",
   "main": "lib/redislock.js",
-  "homepage": "https://github.com/avvs/redislock",
+  "homepage": "https://github.com/makeomatic/ioredis-lock",
   "repository": {
     "type": "git",
-    "url": "https://github.com/avvs/redislock.git"
+    "url": "https://github.com/makeomatic/ioredis-lock.git"
   },
   "dependencies": {
-    "bluebird": "^2.9.30",
+    "bluebird": "^3.3.1",
+    "lodash.defaults": "^4.0.1",
     "node-uuid": "^1.4.3"
   },
+  "peerDependencies": {
+    "ioredis": "~1.x.x"
+  },
   "devDependencies": {
+    "babel-cli": "^6.4.5",
+    "babel-eslint": "^5.0.0",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-stage-0": "^6.3.13",
+    "babel-register": "^6.5.2",
+    "eslint": "^1.10.3",
+    "eslint-config-airbnb": "^5.0.1",
     "expect.js": "*",
-    "ioredis": "^1.5.1",
+    "ioredis": "~1.x.x",
     "mocha": "^2.2.5"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha -R spec spec"
+    "test": "mocha -r babel-register -R spec spec spec/integration",
+    "compile": "./node_modules/.bin/babel -d ./lib src",
+    "prepublish": "npm run compile",
+    "pretest": "npm run compile"
   }
 }

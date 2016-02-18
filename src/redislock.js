@@ -1,12 +1,10 @@
-'use strict';
-
 /**
  * redislock exposes a total of three functions: createLock, setDefaults,
  * and getActiveLocks.
  */
 
-var Lock = require('./lock');
-var errors = require('./errors');
+const Lock = require('./lock');
+const errors = require('./errors');
 
 /**
  * Returns a new Lock instance, configured for use with the supplied redis
@@ -17,7 +15,7 @@ var errors = require('./errors');
  *
  * @return {Lock} A new lock object
  */
-exports.createLock = function(client, options) {
+exports.createLock = function createLock(client, options) {
   return new Lock(client, options);
 };
 
@@ -27,10 +25,8 @@ exports.createLock = function(client, options) {
  *
  * @param {object} options The options to set
  */
-exports.setDefaults = function(options) {
-  options = options || {};
-
-  for (var key in Lock._defaults) {
+exports.setDefaults = function setDefaults(options = {}) {
+  for (const key in Lock._defaults) {
     if (options[key] !== null && options[key] !== undefined) {
       Lock._defaults[key] = parseInt(options[key], 10);
     }
@@ -42,10 +38,11 @@ exports.setDefaults = function(options) {
  *
  * @return {Lock[]} An array of Lock objects
  */
-exports.getAcquiredLocks = function() {
-  var locks = [];
-  for (var key in Lock._acquiredLocks) {
-    locks.push(Lock._acquiredLocks[key]);
+exports.getAcquiredLocks = function getAcquiredLocks() {
+  const locks = [];
+
+  for (const lock of Lock._acquiredLocks) {
+    locks.push(lock);
   }
 
   return locks;
@@ -64,4 +61,4 @@ exports.LockReleaseError = errors.LockReleaseError;
 /**
  * The constructor function for a LockExtendError
  */
-exports.LockExtendError  = errors.LockExtendError;
+exports.LockExtendError = errors.LockExtendError;
