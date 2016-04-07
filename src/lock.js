@@ -12,7 +12,8 @@ function promiseOrFunction(promise, fn) {
     return promise.asCallback(fn);
   }
 
-  return promise;
+  // wrap promise so that we have bluebird 3 actions here
+  return Promise.resolve(promise);
 }
 
 /**
@@ -246,7 +247,8 @@ class Lock {
     const client = this._client;
     const ttl = this.timeout;
 
-    return client.set(key, this._id, 'PX', ttl, 'NX')
+    return client
+      .set(key, this._id, 'PX', ttl, 'NX')
       .then(res => {
         if (!res && !retries) {
           throw new LockAcquisitionError(`Could not acquire lock on "${key}"`);
@@ -255,9 +257,9 @@ class Lock {
         }
 
         // Try the lock again after the configured delay
-        return Promise.delay(lock.delay).then(() => {
-          return lock._attemptLock(key, retries - 1);
-        });
+        return Promise
+          .delay(lock.delay)
+          .then(() => lock._attemptLock(key, retries - 1));
       });
   }
 
