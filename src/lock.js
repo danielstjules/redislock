@@ -3,6 +3,7 @@ const uuid = require('node-uuid');
 const errors = require('./errors');
 const scripts = require('./scripts');
 const defaults = require('lodash.defaults');
+const each = require('lodash.foreach');
 
 const { LockAcquisitionError, LockReleaseError, LockExtendError } = errors;
 
@@ -13,7 +14,7 @@ function promiseOrFunction(promise, fn) {
   }
 
   // wrap promise so that we have bluebird 3 actions here
-  return Promise.resolve(promise);
+  return promise;
 }
 
 /**
@@ -38,7 +39,7 @@ class Lock {
    *
    * @private
    */
-  static _acquiredLocks = new Map();
+  static _acquiredLocks = new Set();
 
   /**
    * The constructor for a Lock object. Accepts both a redis client, as well as
@@ -68,11 +69,11 @@ class Lock {
 
     // Iterate over supplied options
     if (options && typeof options === 'object') {
-      for (const key in Lock._defaults) {
+      each(Lock._defaults, (value, key) => {
         if (key in options) {
           this[key] = options[key];
         }
-      }
+      });
     }
   }
 
@@ -100,7 +101,7 @@ class Lock {
       .then(() => {
         lock._locked = true;
         lock._key = key;
-        Lock._acquiredLocks.set(lock._id, lock);
+        Lock._acquiredLocks.add(lock);
       })
       .catch(err => {
         // Wrap redis errors
@@ -149,7 +150,7 @@ class Lock {
 
         lock._locked = false;
         lock._key = null;
-        Lock._acquiredLocks.delete(lock._id);
+        Lock._acquiredLocks.delete(lock);
 
         throw new LockExtendError(`Lock on "${key}" had expired`);
       })
@@ -191,7 +192,7 @@ class Lock {
       .then(res => {
         lock._locked = false;
         lock._key = null;
-        Lock._acquiredLocks.delete(lock._id);
+        Lock._acquiredLocks.delete(lock);
 
         if (!res) {
           throw new LockReleaseError(`Lock on "${key}" had expired`);

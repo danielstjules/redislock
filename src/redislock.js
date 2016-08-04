@@ -10,8 +10,8 @@ const errors = require('./errors');
  * Returns a new Lock instance, configured for use with the supplied redis
  * client, as well as options, if provided.
  *
- * @param {RedisClient} client    The node_redis client to use
- * @param {object}      [options] Options to apply
+ * @param {RedisClient} client    The ioredis client to use
+ * @param {object} [options] Options to apply
  *
  * @return {Lock} A new lock object
  */
@@ -26,11 +26,12 @@ exports.createLock = function createLock(client, options) {
  * @param {object} options The options to set
  */
 exports.setDefaults = function setDefaults(options = {}) {
-  for (const key in Lock._defaults) {
+  const keys = Object.keys(Lock._defaults);
+  keys.forEach(key => {
     if (options[key] !== null && options[key] !== undefined) {
       Lock._defaults[key] = parseInt(options[key], 10);
     }
-  }
+  });
 };
 
 /**
@@ -39,11 +40,11 @@ exports.setDefaults = function setDefaults(options = {}) {
  * @return {Lock[]} An array of Lock objects
  */
 exports.getAcquiredLocks = function getAcquiredLocks() {
-  const locks = [];
+  const locks = new Array(Lock._acquiredLocks.size);
 
-  for (const lock of Lock._acquiredLocks) {
-    locks.push(lock);
-  }
+  Lock._acquiredLocks.forEach((lock, idx) => {
+    locks[idx] = lock;
+  });
 
   return locks;
 };
