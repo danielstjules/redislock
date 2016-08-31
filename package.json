@@ -30,7 +30,7 @@
   "devDependencies": {
     "expect.js": "*",
     "fakeredis": "*",
-    "mocha": "*",
+    "mocha": "2",
     "redis": "*",
     "rewire": "*"
   },
