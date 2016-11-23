@@ -28,7 +28,7 @@
     "bluebird": "^3.4.1",
     "lodash.defaults": "^4.1.0",
     "lodash.foreach": "^4.4.1",
-    "node-uuid": "^1.4.3"
+    "uuid": "^3.0.0"
   },
   "peerDependencies": {
     "ioredis": "~2.x.x"
