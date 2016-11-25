@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const uuid = require('node-uuid');
+const uuid = require('uuid');
 const errors = require('./errors');
 const scripts = require('./scripts');
 const defaults = require('lodash.defaults');
