@@ -10,6 +10,7 @@ var Lock            = rewire('../lib/lock');
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
+var LockHeldError        = redislock.LockHeldError;
 var LockExtendError      = redislock.LockExtendError;
 
 // Fakeredis doesn't support SET options such as PX and NX
@@ -164,79 +165,6 @@ describe('lock', function() {
         });
       });
     });
-
-    describe('with callbacks', function() {
-      it('returns a LockAcquisitionError if already locked', function(done) {
-        lock.acquire('test:key', function(err) {
-          if (err) return done(err);
-
-          lock.acquire('test:key', function(err) {
-            expect(err).to.be.an(LockAcquisitionError);
-            expect(err.message).to.be('Lock already held');
-            done();
-          });
-        });
-      });
-
-      it('returns an error if retries is 0, and the key is not empty',function(done) {
-        client.set('key:taken', 'aLockID', function(err) {
-          if (err) return done(err);
-
-          lock.acquire('key:taken', function(err) {
-            expect(err).to.be.an(LockAcquisitionError);
-            expect(err.message).to.be('Could not acquire lock on "key:taken"');
-            done();
-          });
-        });
-      });
-
-      it('sets the locked property to true', function(done) {
-        lock.acquire('test:key', function(err) {
-          if (err) return done(err);
-          expect(lock._locked).to.be(true);
-          done();
-        });
-      });
-
-      it('sets its key property to the given key', function(done) {
-        var key = 'test:key';
-        lock.acquire(key, function(err) {
-          if (err) return done(err);
-          expect(lock._key).to.be(key);
-          done();
-        });
-      });
-
-      it('adds the lock to Lock._acquiredLocks', function(done) {
-        lock.acquire('propertytest', function(err) {
-          if (err) return done(err);
-          expect(Lock._acquiredLocks[lock._id]).to.be(lock);
-          done();
-        });
-      });
-
-      it('retries with the configured delay', function(done) {
-        // Bluebird.delay doesn't seem to play well with sinon time faking
-        // As a result, this test works, but is more fragile than I'd like
-        var key = 'retry:test';
-        lock = new Lock(client, {
-          timeout: 10000,
-          retries: 1,
-          delay:   10
-        });
-
-        setTimeout(function() {
-          client.del(key);
-        }, 9);
-
-        client.set(key, 'testID', function(err) {
-          if (err) return done(err);
-          lock.acquire(key, function(err) {
-            return done(err);
-          });
-        });
-      });
-    });
   });
 
   describe('release', function() {
@@ -331,6 +259,40 @@ describe('lock', function() {
               done();
             });
           });
+        });
+      });
+    });
+  });
+
+  describe('check', function() {
+    beforeEach(function() {
+      lock = new Lock(client);
+      mockRelease(lock);
+    });
+
+    afterEach(function() {
+      if (lock._key) {
+        mockRelease(lock);
+        return lock.release();
+      }
+    });
+
+    describe('with promises', function() {
+      it('returns a LockAcquisitionError if already locked', function() {
+        return lock.acquire('test:key').then(function() {
+          return lock.check('test:key');
+        }).catch(LockHeldError, function(err) {
+          expect(err).to.be.an(LockHeldError);
+          expect(err.message).to.be('Lock already held');
+        });
+      });
+
+      it('returns an error if retries is 0, and the key is not empty',function() {
+        return client.setAsync('key:taken', 'aLockID').then(function() {
+          return lock.check('key:taken');
+        }).catch(LockAcquisitionError, function(err) {
+          expect(err).to.be.an(LockHeldError);
+          expect(err.message).to.be('Could not check lock on "key:taken"');
         });
       });
     });

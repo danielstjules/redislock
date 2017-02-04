@@ -27,4 +27,17 @@ describe('errors', function() {
       expect(error.message).to.be(message);
     });
   });
+
+  describe('LockHeldError', function() {
+    it('inherits from Error', function() {
+      expect(new errors.LockHeldError()).to.be.an(Error);
+    });
+
+    it('accepts a message', function() {
+      var message = 'ErrorMessage';
+      var error = new errors.LockHeldError(message);
+
+      expect(error.message).to.be(message);
+    });
+  });
 });
