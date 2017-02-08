@@ -40,13 +40,7 @@ exports.setDefaults = function setDefaults(options = {}) {
  * @return {Lock[]} An array of Lock objects
  */
 exports.getAcquiredLocks = function getAcquiredLocks() {
-  const locks = new Array(Lock._acquiredLocks.size);
-
-  Lock._acquiredLocks.forEach((lock, idx) => {
-    locks[idx] = lock;
-  });
-
-  return locks;
+  return Array.from(Lock._acquiredLocks);
 };
 
 /**
