@@ -3,6 +3,7 @@
     "transform-strict-mode",
     "transform-es2015-destructuring",
     "transform-object-rest-spread",
-    "transform-class-properties"
+    "transform-class-properties",
+    "transform-es2015-parameters"
   ]
 }
