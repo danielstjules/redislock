@@ -15,7 +15,8 @@
   ],
   "author": "Daniel St. Jules <danielst.jules@gmail.com>",
   "contributors": [
-    "Vitaly Aminev <v@makeomatic.ru>"
+    "Vitaly Aminev <v@makeomatic.ru>",
+    "Bernhard Weisshuhn <bkw@codingforce.com>"
   ],
   "license": "MIT",
   "main": "lib/redislock.js",
@@ -45,16 +46,18 @@
     "babel-preset-stage-0": "^6.22.0",
     "babel-register": "^6.22.0",
     "eslint": "^3.10.2",
-    "eslint-config-airbnb-base": "^10.0.1",
+    "eslint-config-airbnb-base": "^11.1.0",
     "eslint-plugin-import": "^2.2.0",
     "expect.js": "*",
     "ioredis": "^2.4.0",
     "mocha": "^3.2.0"
   },
   "scripts": {
-    "test": "mocha -r babel-register -R spec spec spec/integration",
+    "lint": "eslint ./src",
+    "test": "npm run lint && mocha -r babel-register -R spec spec spec/integration",
     "compile": "babel -d ./lib src",
     "prepublish": "npm run compile",
-    "pretest": "npm run compile"
+    "pretest": "npm run compile",
+    "publish:legacy": "npm publish --tag=legacy"
   }
 }

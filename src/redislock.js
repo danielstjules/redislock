@@ -27,7 +27,7 @@ exports.createLock = function createLock(client, options) {
  */
 exports.setDefaults = function setDefaults(options = {}) {
   const keys = Object.keys(Lock._defaults);
-  keys.forEach(key => {
+  keys.forEach((key) => {
     if (options[key] !== null && options[key] !== undefined) {
       Lock._defaults[key] = parseInt(options[key], 10);
     }

@@ -25,6 +25,7 @@ WATCH/MULTI. Refer to [Implementation](#implementation) and
 ## Installation
 
 Using npm, you can install redislock with `npm install ioredis-lock -S`.
+If you need node 4.x.x support, use the following `npm install ioredis-lock@legacy -S`
 
 You can also require it as a dependency in your `package.json` file:
 

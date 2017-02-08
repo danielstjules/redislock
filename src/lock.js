@@ -103,7 +103,7 @@ class Lock {
         lock._key = key;
         Lock._acquiredLocks.add(lock);
       })
-      .catch(err => {
+      .catch((err) => {
         // Wrap redis errors
         if (!(err instanceof LockAcquisitionError)) {
           throw new LockAcquisitionError(err.message);
@@ -143,7 +143,7 @@ class Lock {
 
     const promise = client
       .pexpireifequal(key, lock._id, time)
-      .then(res => {
+      .then((res) => {
         if (res) {
           return;
         }
@@ -154,7 +154,7 @@ class Lock {
 
         throw new LockExtendError(`Lock on "${key}" had expired`);
       })
-      .catch(err => {
+      .catch((err) => {
         if (!(err instanceof LockExtendError)) {
           throw new LockExtendError(err.message);
         }
@@ -189,7 +189,7 @@ class Lock {
 
     const promise = client
       .delifequal(key, lock._id)
-      .then(res => {
+      .then((res) => {
         lock._locked = false;
         lock._key = null;
         Lock._acquiredLocks.delete(lock);
@@ -198,7 +198,7 @@ class Lock {
           throw new LockReleaseError(`Lock on "${key}" had expired`);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         // Wrap redis errors
         if (!(err instanceof LockReleaseError)) {
           throw new LockReleaseError(err.message);
@@ -250,7 +250,7 @@ class Lock {
 
     return client
       .set(key, this._id, 'PX', ttl, 'NX')
-      .then(res => {
+      .then((res) => {
         if (!res && !retries) {
           throw new LockAcquisitionError(`Could not acquire lock on "${key}"`);
         } else if (res) {
