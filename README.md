@@ -288,6 +288,22 @@ lock.acquire('app:lock', function(err) {
 });
 ```
 
+#### lock.check[key, [fn]]
+
+Check if a lock is held, given a key, and an optional callback
+function.  If the if the lock is held, additional attempts will be
+made until it is not held for the configured number of retries, and
+padded by the delay. The callback is invoked with an error on failure,
+and returns a promise if no callback is supplied. If invoked in the
+context of a promise, it may throw a LockHeldError.
+
+``` javascript
+var lock = redislock.createLock(client);
+lock.check('example:lock', function(err) {
+  if (err) return console.log(err.message); // 'Lock already held'
+});
+```
+
 ## Tests
 
 Unit and functional tests are available in the base spec directory, and can

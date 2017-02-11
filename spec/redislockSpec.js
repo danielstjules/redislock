@@ -14,6 +14,10 @@ describe('redislock', function() {
     expect(redislock.LockReleaseError).to.be(errors.LockReleaseError);
   });
 
+  it('exports LockHeldError', function() {
+    expect(redislock.LockHeldError).to.be(errors.LockHeldError);
+  });
+
   describe('createLock', function() {
     it('creates a new Lock instance', function() {
       var lock = redislock.createLock(client);
