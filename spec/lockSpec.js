@@ -145,8 +145,6 @@ describe('lock', function() {
     });
 
     it('retries with the configured delay', function() {
-      // Bluebird.delay doesn't seem to play well with sinon time faking
-      // As a result, this test works, but is more fragile than I'd like
       var key = 'retry:test';
       lock = new Lock(client, {
         timeout: 10000,
@@ -157,6 +155,23 @@ describe('lock', function() {
       setTimeout(function() {
         client.del(key);
       }, 9);
+
+      return client.setAsync(key, 'testID').then(function(res) {
+        return lock.acquire(key);
+      });
+    });
+
+    it('performs infinite retries if set to -1', function() {
+      var key = 'infiniteretry:test';
+      lock = new Lock(client, {
+        timeout: 10000,
+        retries: -1,
+        delay:   2
+      });
+
+      setTimeout(function() {
+        client.del(key);
+      }, 20);
 
       return client.setAsync(key, 'testID').then(function(res) {
         return lock.acquire(key);
