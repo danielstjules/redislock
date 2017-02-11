@@ -43,7 +43,7 @@ connections. Lock creation requires a node_redis client, and accepts an
 object specifying the following three options:
 
  * timeout: Time in milliseconds before which a lock expires (default: 10000 ms)
- * retries: Maximum number of retries in acquiring a lock if the first attempt failed (default: 0)
+ * retries: Maximum number of retries in acquiring a lock if the first attempt failed (default: 0, infinite: -1)
  * delay:   Time in milliseconds to wait between each attempt (default: 50 ms)
 
 ``` javascript
