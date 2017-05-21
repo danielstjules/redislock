@@ -5,7 +5,10 @@ const scripts = require('./scripts');
 const defaults = require('lodash.defaults');
 const each = require('lodash.foreach');
 
-const { LockAcquisitionError, LockReleaseError, LockExtendError } = errors;
+// so it's compatible with node 4
+const LockAcquisitionError = errors.LockAcquisitionError;
+const LockReleaseError = errors.LockReleaseError;
+const LockExtendError = errors.LockExtendError;
 
 // helper for using both ifaces
 function promiseOrFunction(promise, fn) {
