@@ -1,6 +1,6 @@
 {
   "name": "ioredis-lock",
-  "version": "4.0.0",
+  "version": "3.4.0",
   "description": "Node distributed locking using redis with ioredis adapter",
   "keywords": [
     "lock",
@@ -55,7 +55,6 @@
     "test": "npm run lint && mocha -r babel-register -R spec spec spec/integration",
     "compile": "babel -d ./lib src",
     "prepublish": "npm run compile",
-    "pretest": "npm run compile",
-    "publish:legacy": "npm publish --tag=legacy"
+    "pretest": "npm run compile"
   }
 }
