@@ -102,6 +102,7 @@ class Lock {
         lock._locked = true;
         lock._key = key;
         Lock._acquiredLocks.add(lock);
+        return null;
       })
       .catch((err) => {
         // Wrap redis errors
@@ -197,6 +198,8 @@ class Lock {
         if (!res) {
           throw new LockReleaseError(`Lock on "${key}" had expired`);
         }
+
+        return null;
       })
       .catch((err) => {
         // Wrap redis errors
