@@ -5,4 +5,4 @@ node_js:
   - "7"
 services:
   - redis-server
-script: "npm test"
+script: "yarn test"

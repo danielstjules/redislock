@@ -23,25 +23,6 @@ function promiseOrFunction(promise, fn) {
 class Lock {
 
   /**
-   * An object containing the default options used by each module instance.
-   * Should not modified directly, but instead using setDefaults.
-   *
-   * @private
-   */
-  static _defaults = {
-    timeout: 10000,
-    retries: 0,
-    delay: 50,
-  };
-
-  /**
-   * An object mapping UUIDs to the locks currently held by this module.
-   *
-   * @private
-   */
-  static _acquiredLocks = new Set();
-
-  /**
    * The constructor for a Lock object. Accepts both a redis client, as well as
    * an options object with the following properties: timeout, retries and delay.
    * Any options not supplied are subject to the current defaults.
@@ -268,5 +249,24 @@ class Lock {
   }
 
 }
+
+/**
+ * An object containing the default options used by each module instance.
+ * Should not modified directly, but instead using setDefaults.
+ *
+ * @private
+ */
+Lock._defaults = {
+  timeout: 10000,
+  retries: 0,
+  delay: 50,
+};
+
+/**
+ * An object mapping UUIDs to the locks currently held by this module.
+ *
+ * @private
+ */
+Lock._acquiredLocks = new Set();
 
 module.exports = Lock;

@@ -37,8 +37,6 @@
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-eslint": "^7.2.3",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-plugin-transform-strict-mode": "^6.24.1",
     "babel-register": "^6.24.1",
     "eslint": "^3.19.0",
@@ -50,7 +48,7 @@
     "mocha": "^3.4.1"
   },
   "engine": {
-    "node": ">= 7.6.0"
+    "node": ">= 4.0.0"
   },
   "scripts": {
     "lint": "eslint ./src",
