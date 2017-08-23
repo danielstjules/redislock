@@ -66,8 +66,9 @@ lock.acquire('app:feature:lock', function(err) {
 Supports promises, thanks to bluebird, out of the box:
 
 ``` javascript
-var client = require('redis').createClient();
-var lock   = require('redislock').createLock(client);
+var client    = require('redis').createClient();
+var redislock = require('redislock');
+var lock      = redislock.createLock(client);
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
