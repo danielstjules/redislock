@@ -13,9 +13,7 @@
     "synchronization"
   ],
   "author": "Daniel St. Jules <danielst.jules@gmail.com>",
-  "licenses": [
-    "MIT"
-  ],
+  "license": "MIT",
   "main": "lib/redislock.js",
   "homepage": "https://github.com/danielstjules/redislock",
   "repository": {
