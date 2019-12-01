@@ -21,7 +21,7 @@
     "url": "https://github.com/danielstjules/redislock.git"
   },
   "dependencies": {
-    "bluebird": "~2.9.30",
+    "bluebird": "~3.7.2",
     "redis-evalsha": "~1.1.1",
     "uuid": "^3.0.0"
   },

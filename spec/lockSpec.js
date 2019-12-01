@@ -29,7 +29,7 @@ describe('lock', function() {
       Lock._acquiredLocks[lock._id] = lock;
       lock._locked = true;
       lock._key = key;
-      return client.setAsync(key, lock._id).nodeify(fn);
+      return client.setAsync(key, lock._id).asCallback(fn);
     };
   };
 
@@ -37,7 +37,7 @@ describe('lock', function() {
   var mockRelease = function(lock) {
     lock.release = function(fn) {
       delete Lock._acquiredLocks[lock._id];
-      return client.delAsync(lock._key).nodeify(fn);
+      return client.delAsync(lock._key).asCallback(fn);
     };
   };
 

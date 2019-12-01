@@ -161,7 +161,7 @@ the release is unaffected by other watched keys.
 
 In addition to the above, most locking libraries aren't compatible with promises
 by default, and due to their API, require "promisifying" individual locks.
-`redislock` avoids this issue by taking advantage of bluebird's `nodeify`
+`redislock` avoids this issue by taking advantage of bluebird's `asCallback`
 function to offer an API that easily supports both callbacks and promises.
 
 ## API
