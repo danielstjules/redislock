@@ -1,12 +1,15 @@
-var expect    = require('expect.js');
-var Promise   = require('bluebird');
-var fakeredis = require('fakeredis');
-var rewire    = require('rewire');
+var expect     = require('expect.js');
+var Promise    = require('bluebird');
+var fakeredis  = require('fakeredis');
+var proxyquire = require('proxyquire');
 
 var helpers         = require('./redisHelpers');
 var mockShavaluator = require('./mockShavaluator');
 var redislock       = require('../lib/redislock');
-var Lock            = rewire('../lib/lock');
+var Lock            = proxyquire('../lib/lock', {
+  // Mock out redis-evalsha to emulate the lua script in unit tests
+  'redis-evalsha': mockShavaluator,
+});
 
 var LockAcquisitionError = redislock.LockAcquisitionError;
 var LockReleaseError     = redislock.LockReleaseError;
@@ -37,11 +40,6 @@ describe('lock', function() {
       return client.delAsync(lock._key).nodeify(fn);
     };
   };
-
-  before(function() {
-    // Mock out redis-evalsha to emulate the lua script in unit tests
-    Lock.__set__('Shavaluator', mockShavaluator);
-  });
 
   describe('constructor', function() {
     beforeEach(function() {
