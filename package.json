@@ -30,7 +30,7 @@
   "devDependencies": {
     "expect.js": "*",
     "fakeredis": "*",
-    "mocha": "2",
+    "mocha": "^6.2.2",
     "redis": "*",
     "proxyquire": "^2.1.3"
   },

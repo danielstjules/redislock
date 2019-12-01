@@ -228,7 +228,7 @@ describe('lock', function() {
     });
 
     it('is compatible with callbacks', function(done) {
-      return lock.acquire('propertytest', function(err) {
+      lock.acquire('propertytest', function(err) {
         if (err) return done(err);
 
         lock.release(function(err) {
